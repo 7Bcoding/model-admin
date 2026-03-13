@@ -1,0 +1,1256 @@
+{% extends "base.html" %}
+
+{% block head %}
+{{ super() }}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/js-yaml/4.1.0/js-yaml.min.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="card model-card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <div>
+            <h2 class="mb-0 d-flex align-items-center">
+                <i class="bi bi-boxes me-2" style="font-size: 1.8rem; color: #0d6efd;"></i>
+                <span>模型管理</span>
+            </h2>
+            <small class="text-muted">管理和监控您的 LLM 模型部署</small>
+        </div>
+        <div class="form-check">
+            <input type="checkbox" class="form-check-input" id="active_only" 
+                   {% if request.args.get('active_only', 'true') == 'true' %}checked{% endif %}>
+            <label class="form-check-label" for="active_only">只看启用中</label>
+        </div>
+    </div>
+    <div class="card-body">
+        <!-- 添加过滤表单 -->
+        <div class="row g-3 mb-4">
+            <div class="col-md-6">
+                <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                    <input type="text" class="form-control" id="modelSearch" 
+                           placeholder="搜索模型名称或备注..." 
+                           autocomplete="off">
+                    <button type="button" class="btn btn-outline-secondary clear-search">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <select class="form-select" id="privacyFilter">
+                    <option value="">所有模型</option>
+                    <option value="private">仅私有模型</option>
+                    <option value="public">仅公开模型</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="showStarredOnly" 
+                           {% if request.args.get('show_starred') == 'true' %}checked{% endif %}>
+                    <label class="form-check-label" for="showStarredOnly">只看收藏</label>
+                </div>
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-hover table-striped align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>模型名称</th>
+                        <th>状态</th>
+                        <th>私有</th>
+                        <th>最大长度</th>
+                        <th>监控</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for model in models %}
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <button class="btn btn-link star-btn p-0 me-2" 
+                                        type="button"
+                                        data-model-name="{{ model.model.model_name }}"
+                                        data-starred="{{ 'true' if model.starred else 'false' }}"
+                                        style="color: #ffc107;">
+                                    <i class="bi {{ 'bi-star-fill' if model.starred else 'bi-star' }}"></i>
+                                </button>
+                                <div class="model-info flex-grow-1 d-flex align-items-center">
+                                    <div class="model-text text-truncate">
+                                        <span class="fw-bold">{{ model.model.model_name }}</span>
+                                        {% if model.note %}
+                                        <span class="text-muted ms-2" title="{{ model.note }}">
+                                            <i class="bi bi-sticky-fill small"></i>
+                                            {{ model.note }}
+                                        </span>
+                                        {% endif %}
+                                    </div>
+                                    <button class="btn btn-link edit-note-btn p-0 ms-2 flex-shrink-0" 
+                                            data-bs-toggle="modal" 
+                                            data-bs-target="#editNoteModal"
+                                            data-model-name="{{ model.model.model_name }}"
+                                            data-note="{{ model.note }}"
+                                            style="font-size: 0.875rem;">
+                                        <i class="bi bi-pencil-square"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="badge {{ 'bg-success' if model.model.status == 'MODEL_STATUS_SERVING' else 'bg-danger' }}">
+                                {{ '启用' if model.model.status == 'MODEL_STATUS_SERVING' else '停用' }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="badge {{ 'bg-warning' if model.model.is_private else 'bg-info' }}">
+                                {{ '是' if model.model.is_private else '否' }}
+                            </span>
+                        </td>
+                        <td>{{ model.model.context_size }}</td>
+                        <td>
+                            <div class="btn-group">
+                                <a href="https://grafana.aicloud.pplabs.tech/d/kk_xQEjVc/llm-overview?orgId=1&var-model={{ model.model.model_name }}"
+                                   target="_blank"
+                                   class="btn btn-sm btn-outline-primary" 
+                                   style="cursor: pointer;"
+                                   title="查看总览监控">
+                                    <i class="bi bi-graph-up"></i> overview
+                                </a>
+                                <a href="https://grafana.aicloud.pplabs.tech/d/b281712d-8bff-41ef-9f3f-71ad43c05e9bdd/vllm-per-model?orgId=1&var-model_name={{ model.model.model_name }}"
+                                   target="_blank"
+                                   class="btn btn-sm btn-outline-secondary"
+                                   style="cursor: pointer;"
+                                   title="查看 vLLM 监控">
+                                    <i class="bi bi-graph-up"></i> vllm
+                                </a>
+                                {% set has_serverless = [] %}
+                                {% for endpoint in model.endpoints %}
+                                    {% if '.runsync.novita.dev' in endpoint.url %}
+                                        {% set _ = has_serverless.append(1) %}
+                                    {% endif %}
+                                {% endfor %}
+                                {% if has_serverless %}
+                                <a href="https://grafana.aicloud.pplabs.tech/d/KOpAVRCIz1/prod-overview?orgId=1{% for endpoint in model.endpoints %}{% if '.runsync.novita.dev' in endpoint.url %}&var-endpoint={{ endpoint.url.replace('https://', '').replace('http://', '').split('.runsync.novita.dev')[0] }}{% endif %}{% endfor %}&from=now-24h&to=now&refresh=5s"
+                                   target="_blank"
+                                   class="btn btn-sm btn-outline-info"
+                                   title="查看 Serverless 监控">
+                                    <svg class="grafana-icon" viewBox="0 0 24 24" width="16" height="16" style="vertical-align: -3px;">
+                                        <path fill="currentColor" d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm0 22.667C6.12 22.667 1.333 17.88 1.333 12S6.12 1.333 12 1.333 22.667 6.12 22.667 12 17.88 22.667 12 22.667zM12 4c-4.411 0-8 3.589-8 8s3.589 8 8 8 8-3.589 8-8-3.589-8-8-8zm0 14.667c-3.682 0-6.667-2.985-6.667-6.667S8.318 5.333 12 5.333 18.667 8.318 18.667 12 15.682 18.667 12 18.667zM12 8c-2.206 0-4 1.794-4 4s1.794 4 4 4 4-1.794 4-4-1.794-4-4-4z"/>
+                                    </svg>
+                                    serverless
+                                </a>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td>
+                            <div class="btn-group">
+                                <button type="button" class="btn btn-sm btn-secondary view-model-details" 
+                                        data-model-data='{{ model|tojson|safe }}'
+                                        style="white-space: nowrap;">
+                                    详情
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-info view-deployment-info"
+                                        data-model-data='{{ model|tojson|safe }}'
+                                        style="white-space: nowrap;">
+                                    <i class="bi bi-cloud-download"></i>
+                                    部署信息
+                                </button>
+                                <a href="{{ url_for('manage_endpoints', model_name=model.model.model_name) }}" 
+                                   class="btn btn-sm btn-primary"
+                                   style="white-space: nowrap;">
+                                    endpoints
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- 详情模态框 -->
+<div class="modal fade" id="modelDetailsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">模型详情</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>基本信息</h6>
+                        <table class="table table-sm">
+                            <tr>
+                                <th>模型名称</th>
+                                <td class="model-name"></td>
+                            </tr>
+                            <tr>
+                                <th>状态</th>
+                                <td class="model-status"></td>
+                            </tr>
+                            <tr>
+                                <th>私有</th>
+                                <td class="model-private"></td>
+                            </tr>
+                            <tr>
+                                <th>最大长度</th>
+                                <td class="model-max-tokens"></td>
+                            </tr>
+                            <tr>
+                                <th>Token价格</th>
+                                <td class="model-price"></td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Stop Tokens</h6>
+                        <pre class="bg-light p-2 rounded"><code class="model-stop-tokens"></code></pre>
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h6 class="mb-0">原始配置</h6>
+                        <button class="btn btn-sm btn-outline-secondary toggle-raw-config">
+                            <i class="bi bi-chevron-down"></i> 展开
+                        </button>
+                    </div>
+                    <pre class="bg-light p-3 rounded mt-2" style="display: none;">
+                        <code class="model-raw-config language-json"></code>
+                    </pre>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 部署信息模态框 -->
+<div class="modal fade" id="deploymentInfoModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">部署信息</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="deployment-info-content">
+                    <div class="text-center loading-spinner" style="display: none;">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-2 text-muted">正在获取部署信息...</p>
+                    </div>
+                    <div class="accordion" id="deploymentAccordion">
+                        <!-- Endpoints will be dynamically added here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 添加JavaScript处理 -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // 获取所有过滤控件
+    const searchInput = document.getElementById('modelSearch');
+    const activeOnlyCheckbox = document.getElementById('active_only');
+    const privacyFilter = document.getElementById('privacyFilter');
+    const showStarredCheckbox = document.getElementById('showStarredOnly');
+
+    // 实时搜索和过滤函数
+    function filterModels() {
+        const searchTerm = searchInput.value.toLowerCase();
+        const showOnlyActive = activeOnlyCheckbox.checked;
+        const privacyValue = privacyFilter.value;
+        const showOnlyStarred = showStarredCheckbox.checked;
+
+        // 获取所有
+        const modelRows = document.querySelectorAll('tbody tr');
+
+        modelRows.forEach(row => {
+            try {
+                // 获取模型名称和备注（使用可靠的选择器）
+                const modelNameEl = row.querySelector('.fw-bold');
+                const noteEl = row.querySelector('.text-muted[title]');  // 使用带 title 属性的备注元素
+                
+                if (!modelNameEl) {
+                    console.warn('Model name element not found');
+                    return;
+                }
+
+                const modelName = modelNameEl.textContent.toLowerCase();
+                const note = noteEl ? noteEl.textContent.toLowerCase() : '';
+
+                // 获取状态和私有信息（使用更可靠的选择器）
+                const statusBadge = row.querySelector('td:nth-child(2) .badge');
+                const privateBadge = row.querySelector('td:nth-child(3) .badge');
+                const starBtn = row.querySelector('.star-btn');
+
+                if (!statusBadge || !privateBadge || !starBtn) {
+                    console.warn('Required elements not found');
+                    return;
+                }
+
+                const isActive = statusBadge.textContent.trim() === '启用';
+                const isPrivate = privateBadge.textContent.trim() === '是';
+                const isStarred = starBtn.querySelector('.bi-star-fill') !== null;
+
+                // 搜索匹配模型名称或备注）
+                const matchesSearch = searchTerm === '' || 
+                                    modelName.includes(searchTerm) || 
+                                    note.includes(searchTerm);
+
+                // 状态匹配
+                const matchesActive = !showOnlyActive || isActive;
+
+                // 私有状态匹配
+                const matchesPrivacy = privacyValue === '' || 
+                                     (privacyValue === 'private' && isPrivate) || 
+                                     (privacyValue === 'public' && !isPrivate);
+
+                // 收藏匹配
+                const matchesStarred = !showOnlyStarred || isStarred;
+
+                // 综合所有条件
+                const shouldShow = matchesSearch && matchesActive && matchesPrivacy && matchesStarred;
+                row.style.display = shouldShow ? '' : 'none';
+
+            } catch (error) {
+                console.error('Error processing row:', error);
+                row.style.display = 'none';  // 如果处理出错，隐藏该行
+            }
+        });
+    }
+
+    // 为所有过滤控件添事件监听器
+    searchInput.addEventListener('input', filterModels);
+    activeOnlyCheckbox.addEventListener('change', filterModels);
+    privacyFilter.addEventListener('change', filterModels);
+    showStarredCheckbox.addEventListener('change', function() {
+        const url = new URL(window.location);
+        url.searchParams.set('show_starred', this.checked);
+        window.location = url;
+    });
+
+    // 添加清除搜索按钮功能
+    const clearSearchBtn = document.querySelector('.clear-search');
+    if (clearSearchBtn) {
+        searchInput.addEventListener('input', function() {
+            clearSearchBtn.style.display = this.value ? 'block' : 'none';
+        });
+
+        clearSearchBtn.addEventListener('click', function() {
+            searchInput.value = '';
+            clearSearchBtn.style.display = 'none';
+            filterModels();
+        });
+    }
+
+    // 初始过滤
+    filterModels();
+
+    // 详情按钮点击事件
+    document.querySelectorAll('.view-model-details').forEach(button => {
+        button.addEventListener('click', function() {
+            const modelData = JSON.parse(this.getAttribute('data-model-data'));
+            
+            // 格式化模型信息
+            const formattedDetails = `
+                <div class="model-details">
+                    <div class="section mb-4">
+                        <h6 class="section-title">基本息</h6>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="detail-item">
+                                    <label class="text-muted">模型名称</label>
+                                    <div class="fw-bold">${modelData.model.model_name}</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="detail-item">
+                                    <label class="text-muted">状态</label>
+                                    <div>
+                                        <span class="badge ${modelData.model.status === 'MODEL_STATUS_SERVING' ? 'bg-success' : 'bg-danger'}">
+                                            ${modelData.model.status === 'MODEL_STATUS_SERVING' ? '启用' : '停用'}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="detail-item">
+                                    <label class="text-muted">最大长度</label>
+                                    <div>${modelData.model.context_size}</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="detail-item">
+                                    <label class="text-muted">私有模型</label>
+                                    <div>
+                                        <span class="badge ${modelData.model.is_private ? 'bg-warning' : 'bg-info'}">
+                                            ${modelData.model.is_private ? '是' : '否'}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="detail-item">
+                                    <label class="text-muted">输入价格</label>
+                                    <div>
+                                        ${modelData.model.input_token_price_per_million ? 
+                                            `${(modelData.model.input_token_price_per_million / 10000).toFixed(4)}/百万 tokens` : 
+                                            '<span class="text-muted">未设置</span>'}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="detail-item">
+                                    <label class="text-muted">输出价格</label>
+                                    <div>
+                                        ${modelData.model.output_token_price_per_million ? 
+                                            `${(modelData.model.output_token_price_per_million / 10000).toFixed(4)}/百万 tokens` : 
+                                            '<span class="text-muted">未设置</span>'}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    ${modelData.endpoints && modelData.endpoints.length > 0 ? `
+                        <div class="section mb-4">
+                            <h6 class="section-title">部署端点 (${modelData.endpoints.length})</h6>
+                            <div class="table-responsive">
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>端点 ID</th>
+                                            <th>URL</th>
+                                            <th>状</th>
+                                            <th>权重</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${modelData.endpoints.map(endpoint => `
+                                            <tr>
+                                                <td>${endpoint.endpoint_id}</td>
+                                                <td><small class="text-muted">${endpoint.url}</small></td>
+                                                <td>
+                                                    <span class="badge ${endpoint.status === 'ENDPOINT_STATUS_SERVING' ? 'bg-success' : 'bg-danger'}">
+                                                        ${endpoint.status === 'ENDPOINT_STATUS_SERVING' ? '启用' : '停用'}
+                                                    </span>
+                                                </td>
+                                                <td>${endpoint.weight}</td>
+                                            </tr>
+                                        `).join('')}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    ` : ''}
+
+                    <div class="section">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h6 class="section-title mb-0">原始数据</h6>
+                            <button class="btn btn-sm btn-outline-secondary toggle-raw-data">
+                                <i class="bi bi-code-slash"></i>
+                                显示/隐藏
+                            </button>
+                        </div>
+                        <div class="raw-data" style="display: none;">
+                            <pre><code class="language-json">${JSON.stringify(modelData, null, 2)}</code></pre>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // 显示模型详情
+            const modelDetailHtml = `
+                <div class="modal fade" id="modelDetailModal" tabindex="-1">
+                    <div class="modal-dialog modal-lg">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">型详情</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                ${formattedDetails}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // 移除可能存在的旧模态框
+            const oldModal = document.getElementById('modelDetailModal');
+            if (oldModal) {
+                oldModal.remove();
+            }
+            
+            // 添加新模态框并显示
+            document.body.insertAdjacentHTML('beforeend', modelDetailHtml);
+            const modal = new bootstrap.Modal(document.getElementById('modelDetailModal'));
+            modal.show();
+
+            // 添加原始数据切换功能
+            const toggleBtn = document.querySelector('.toggle-raw-data');
+            const rawData = document.querySelector('.raw-data');
+            if (toggleBtn && rawData) {
+                toggleBtn.addEventListener('click', () => {
+                    rawData.style.display = rawData.style.display === 'none' ? 'block' : 'none';
+                });
+            }
+        });
+    });
+
+    // 部署信息按钮点击事件
+    document.querySelectorAll('.view-deployment-info').forEach(button => {
+        button.addEventListener('click', function() {
+            const modelData = JSON.parse(this.getAttribute('data-model-data'));
+            const deploymentModal = document.getElementById('deploymentInfoModal');
+            const modal = new bootstrap.Modal(deploymentModal);
+            const spinner = deploymentModal.querySelector('.loading-spinner');
+            const accordion = deploymentModal.querySelector('#deploymentAccordion');
+            
+            // 先显示模态框，但保持加载动画
+            spinner.style.display = 'block';
+            accordion.innerHTML = '';
+            modal.show();
+
+            // 创建占位内容
+            const placeholderHtml = modelData.endpoints.map((endpoint, index) => `
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button" 
+                                type="button" 
+                                data-bs-toggle="collapse" 
+                                data-bs-target="#endpoint-${index}"
+                                aria-expanded="true">
+                            <div>
+                                <strong>${endpoint.endpoint_id}</strong><br>
+                                <small class="text-muted">${endpoint.url}</small>
+                            </div>
+                        </button>
+                    </h2>
+                    <div id="endpoint-${index}" 
+                         class="accordion-collapse collapse show"
+                         data-bs-parent="#deploymentAccordion">
+                        <div class="accordion-body">
+                            <div class="deployment-info">
+                                <div class="text-center py-3">
+                                    <div class="spinner-border spinner-border-sm text-primary" role="status">
+                                        <span class="visually-hidden">Loading...</span>
+                                    </div>
+                                    <p class="text-muted small mt-2">正在加载部署信息...</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+            
+            // 显示占位内
+            accordion.innerHTML = placeholderHtml;
+            spinner.style.display = 'none';
+
+            // 异步加载每个 endpoint 的详细信息
+            modelData.endpoints.forEach(async (endpoint, index) => {
+                try {
+                    let endpoint_id = endpoint.endpoint_id;
+                    if (endpoint.url && endpoint.url.includes('.runsync.novita.dev')) {
+                        endpoint_id = endpoint.url
+                            .replace('https://', '')
+                            .replace('http://', '')
+                            .split('.runsync.novita.dev')[0];
+                    }
+
+                    const response = await fetch(`/endpoint/se/${endpoint_id}`);
+                    if (!response.ok) {
+                        throw new Error('Failed to fetch SE info');
+                    }
+
+                    const seInfo = await response.json();
+                    const spec = seInfo?.spec?.template?.spec;
+                    const image = spec?.containers?.[0]?.image || 'N/A';
+                    const args = spec?.containers?.[0]?.args || [];
+                    
+                    // 格式化部署参数
+                    const formattedArgs = args.reduce((acc, arg, i) => {
+                        if (arg.startsWith('--')) {
+                            // 添加新行，但不添加额外的空行
+                            if (acc.length > 0) acc.push('\n');  // 只添加一个换行符
+                            
+                            // 找到这个参数的值
+                            let value = [];
+                            let j = i + 1;
+                            while (j < args.length && !args[j].startsWith('--')) {
+                                value.push(args[j]);
+                                j++;
+                            }
+                            
+                            // 添加参数和值，确保对齐
+                            if (value.length > 0) {
+                                acc.push(`${arg.padEnd(35)}${value.join(' ')}`);
+                            } else {
+                                acc.push(arg);  // 如果没有值，只添加参数名
+                            }
+                        }
+                        return acc;
+                    }, []).join('\n');  // 使用单个换行符连接
+
+                    // 移除多余的空行
+                    const cleanedArgs = formattedArgs.split('\n').filter(line => line.trim()).join('\n');
+
+                    // 从参数中提取模名称
+                    const modelArg = args.findIndex(arg => arg === '--model');
+                    const modelName = modelArg !== -1 && args[modelArg + 1] ? args[modelArg + 1] : 'N/A';
+
+                    // 更新对应的 accordion 内容
+                    const accordionBody = document.querySelector(`#endpoint-${index} .accordion-body`);
+                    if (accordionBody) {
+                        accordionBody.innerHTML = `
+                            <div class="deployment-info">
+                                <div class="mb-3">
+                                    <label class="text-muted">Model</label>
+                                    <div class="d-flex align-items-center">
+                                        <code class="me-2">${modelName}</code>
+                                        <a href="https://huggingface.co/${modelName}" 
+                                           target="_blank" 
+                                           class="btn btn-sm btn-outline-secondary">
+                                            <i class="bi bi-box-arrow-up-right"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="text-muted">Image</label>
+                                    <div><code>${image}</code></div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="text-muted">部署参数</label>
+                                    <pre class="deployment-args"><code class="language-bash">${cleanedArgs}</code></pre>
+                                </div>
+                            </div>
+                        `;
+                    }
+                } catch (error) {
+                    console.error(`Error loading endpoint info:`, error);
+                    const accordionBody = document.querySelector(`#endpoint-${index} .accordion-body`);
+                    if (accordionBody) {
+                        accordionBody.innerHTML = `
+                            <div class="alert alert-danger">
+                                加载部署信息失败: ${error.message}
+                            </div>
+                        `;
+                    }
+                }
+            });
+        });
+    });
+
+    // 初始化所有 tooltips
+    document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(function(element) {
+        new bootstrap.Tooltip(element, {
+            trigger: 'hover',
+            placement: 'top',
+            container: 'body'
+        });
+    });
+});
+
+// 收藏切换
+document.addEventListener('DOMContentLoaded', function() {
+    // 收藏按钮点击事件
+    document.querySelectorAll('.star-btn').forEach(button => {
+        button.addEventListener('click', async function(e) {
+            e.preventDefault();
+            e.stopPropagation();  // 阻止事件冒泡
+            
+            const modelName = this.getAttribute('data-model-name');
+            const isStarred = this.getAttribute('data-starred') === 'true';
+            
+            console.log('=== Star Toggle ===');
+            console.log('Model Name:', modelName);
+            console.log('Current Starred Status:', isStarred);
+            
+            try {
+                const url = `/models/${isStarred ? 'unstar' : 'star'}`;
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ model_name: modelName })
+                });
+                
+                console.log('Response Status:', response.status);
+                const data = await response.json();
+                console.log('Response Data:', data);
+                
+                if (response.ok && data.success) {
+                    // 更新按钮状态
+                    this.setAttribute('data-starred', (!isStarred).toString());
+                    const icon = this.querySelector('i');
+                    icon.className = isStarred ? 'bi bi-star' : 'bi bi-star-fill';
+                    
+                    // 刷新页面以更新排序
+                    location.reload();
+                } else {
+                    throw new Error(data.message || '操作失败');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('操作失败: ' + error.message);
+            }
+        });
+    });
+});
+</script>
+
+<!-- 添加备注编辑模态框 -->
+<div class="modal fade" id="editNoteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">编辑备注</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label">模型名称</label>
+                    <div class="model-name fw-bold"></div>
+                </div>
+                <div class="mb-3">
+                    <label for="noteInput" class="form-label">备注</label>
+                    <input type="text" class="form-control" id="noteInput" 
+                           placeholder="添加备注...">
+                    <div class="form-text">简短的备注可以帮助您更好地识别和管理模型</div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary save-note">保存</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 修改相关的 JavaScript -->
+<script>
+// 备注编辑模态框处理
+const editNoteModal = document.getElementById('editNoteModal');
+if (editNoteModal) {
+    editNoteModal.addEventListener('show.bs.modal', function(event) {
+        const button = event.relatedTarget;
+        const modelName = button.dataset.modelName;
+        const note = button.dataset.note || '';
+        
+        // 更新模态框内容
+        this.querySelector('.model-name').textContent = modelName;
+        this.querySelector('#noteInput').value = note;
+        
+        // 保存当前模型名称到模态框
+        this.dataset.modelName = modelName;
+    });
+    
+    // 处理保存按钮点击
+    editNoteModal.querySelector('.save-note').addEventListener('click', async function() {
+        const modal = bootstrap.Modal.getInstance(editNoteModal);
+        const modelName = editNoteModal.dataset.modelName;
+        const note = editNoteModal.querySelector('#noteInput').value;
+        
+        try {
+            const response = await fetch('/models/note', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    model_name: modelName,
+                    note: note
+                })
+            });
+            
+            if (!response.ok) {
+                throw new Error('Failed to update note');
+            }
+            
+            // 更新成功后刷新页面
+            location.reload();
+        } catch (error) {
+            console.error('Error updating note:', error);
+            alert('保存备注失败');
+        }
+    });
+}
+</script>
+
+<style>
+/* 添加过渡效果 */
+tbody tr {
+    transition: opacity 0.2s ease-in-out, transform 0.2s ease-in-out;
+}
+
+.clear-search {
+    display: none;
+    border-left: none;
+}
+
+.search-stats {
+    padding: 0.5rem 0;
+}
+
+/* 添加搜索框聚焦果 */
+#modelSearch:focus {
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15);
+    border-color: #86b7fe;
+}
+
+/* 优化下拉框样式 */
+.form-select:focus {
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15);
+    border-color: #86b7fe;
+}
+
+/* 优化监控按组样式 */
+.btn-group .btn {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+}
+
+.btn-group .btn:not(:last-child) {
+    border-right: 1px solid rgba(0,0,0,0.1);
+}
+
+.btn-outline-info:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* 自定义监控按样式 */
+.btn-group .btn-outline-primary {
+    background-color: #f8f9fa;
+    border-color: #dee2e6;
+    color: #0d6efd;
+}
+
+.btn-group .btn-outline-primary:hover {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+    color: white;
+}
+
+.btn-group .btn-outline-info {
+    background-color: #f0f9ff;
+    border-color: #dee2e6;
+    color: #0dcaf0;
+}
+
+.btn-group .btn-outline-info:hover {
+    background-color: #0dcaf0;
+    border-color: #0dcaf0;
+    color: white;
+}
+
+.btn-group .btn-outline-info:disabled {
+    background-color: #f8f9fa;
+    border-color: #dee2e6;
+    color: #6c757d;
+}
+
+/* 部署信息样式 */
+.deployment-details .accordion-button {
+    padding: 0.75rem 1rem;
+}
+
+.deployment-details .accordion-button strong {
+    color: #333;
+}
+
+.deployment-details .accordion-button small {
+    color: #666;
+    margin-top: 0.25rem;
+}
+
+.deployment-details pre {
+    margin: 0;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.deployment-details code {
+    font-size: 0.875rem;
+}
+
+/* 部署信息的 YAML 样式 */
+.deployment-details pre code.language-yaml {
+    font-size: 0.875rem;
+    line-height: 1.5;
+    color: #032f62;
+}
+
+/* 开/折叠按钮样式 */
+.toggle-raw-config {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+}
+
+.toggle-raw-config i {
+    margin-right: 0.25rem;
+}
+
+.btn-outline-info:not(:disabled) {
+    opacity: 1;
+    cursor: pointer;
+    background-color: #f0f9ff;
+    border-color: #0dcaf0;
+    color: #0dcaf0;
+}
+
+.btn-outline-info:not(:disabled):hover {
+    background-color: #0dcaf0;
+    border-color: #0dcaf0;
+    color: white;
+}
+
+.btn-outline-info:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+    background-color: #f8f9fa;
+    border-color: #dee2e6;
+    color: #6c757d;
+}
+
+.view-deployment-info:not(:disabled) {
+    cursor: pointer;
+}
+
+.view-deployment-info:not(:disabled):hover {
+    background-color: #0dcaf0;
+    color: white;
+}
+
+.view-deployment-info:not(:disabled):active {
+    transform: translateY(1px);
+}
+
+/* 模型链接样式 */
+.accordion-body code .model-link {
+    color: inherit;
+    text-decoration: none;
+}
+
+.accordion-body code .model-link:hover {
+    text-decoration: underline !important;
+    color: #0d6efd;
+}
+
+/* 可选择的代码块样 */
+.accordion-body code {
+    user-select: all;
+    cursor: text;
+}
+
+/* 固定表格布局 */
+.table {
+    table-layout: fixed;
+    width: 100%;
+    margin-bottom: 0;
+}
+
+/* 设置列宽 */
+.table th,
+.table td {
+    padding: 0.75rem;
+    vertical-align: middle;
+    border-bottom: 1px solid #dee2e6;
+}
+
+/* 设置各列的宽度 */
+.table th:nth-child(1),
+.table td:nth-child(1) {
+    width: 40%;  /* 增加模型名称列的宽度 */
+}
+
+.table th:nth-child(2),
+.table td:nth-child(2) {
+    width: 8%;  /* 减小状态列宽度 */
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+}
+
+.table th:nth-child(3),
+.table td:nth-child(3) {
+    width: 8%;  /* 减小私有列宽度 */
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+}
+
+.table th:nth-child(4),
+.table td:nth-child(4) {
+    width: 8%;  /* 减小最大长度列宽度 */
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+}
+
+.table th:nth-child(5),
+.table td:nth-child(5) {
+    width: 18%;  /* 稍微减小监控列宽度 */
+}
+
+.table th:nth-child(6),
+.table td:nth-child(6) {
+    width: 18%;  /* 稍微减小操作列宽度 */
+}
+
+/* 防止内容溢出 */
+.table td > div {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* 确保按钮组不会导致布局变化 */
+.btn-group {
+    display: inline-flex;
+    flex-wrap: nowrap;
+}
+
+/* 平滑过渡效果 */
+.table tr {
+    transition: background-color 0.2s ease;
+}
+
+/* 悬停效果 */
+.table-hover tbody tr:hover {
+    background-color: rgba(0,0,0,.02);
+    transform: none;  /* 移除任何可能的变形效果 */
+}
+
+/* 确保备注输入框不会导致布局跳动 */
+.note-input {
+    width: 100%;
+    min-height: 60px;
+    resize: vertical;
+    margin-top: 0.5rem;
+    transition: none;  /* 移除过渡效果 */
+}
+
+/* 确保星标钮不会导致布局变化 */
+.star-btn {
+    flex-shrink: 0;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s ease;
+}
+
+.star-btn:hover {
+    transform: scale(1.1);
+}
+
+/* 移除可能导抖动的动画效果 */
+.table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+}
+
+/* 确保模态框不影响主页面布局 */
+.modal {
+    overflow-y: auto;
+}
+
+.modal-open {
+    padding-right: 0 !important;
+}
+
+/* 模型信息样式 */
+.model-info {
+    position: relative;
+}
+
+.model-note {
+    margin-top: 2px;
+    color: #6c757d;
+}
+
+.edit-note-btn {
+    color: #6c757d;
+    opacity: 0.5;
+    transition: opacity 0.2s;
+}
+
+.edit-note-btn:hover {
+    opacity: 1;
+    color: #0d6efd;
+}
+
+/* 确保单行显示，超出部分显示省略号 */
+.text-truncate {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* 模态框样式优化 */
+.modal-body .model-name {
+    padding: 0.375rem 0;
+}
+
+/* 优化模型信息显示 */
+.model-info {
+    min-width: 0;  /* 允许内容缩 */
+}
+
+.model-text {
+    flex-grow: 1;
+    min-width: 0;  /* 允许文本收缩 */
+}
+
+/* 备注样式优化 */
+.model-text .text-muted {
+    font-size: 0.875rem;
+    max-width: 50%;  /* 限制备注最大宽度 */
+    display: inline-block;
+    vertical-align: bottom;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.model-text .bi-sticky-fill {
+    font-size: 0.75rem;
+    margin-right: 0.25rem;
+    color: #6c757d;
+}
+
+/* 编辑按钮样式优化 */
+.edit-note-btn {
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+tr:hover .edit-note-btn {
+    opacity: 0.5;
+}
+
+.edit-note-btn:hover {
+    opacity: 1 !important;
+}
+
+/* 优化状态和私有标签 */
+.badge {
+    padding: 0.35em 0.65em;
+    font-size: 0.75em;
+    font-weight: normal;
+}
+
+/* 添加工具提示样式 */
+[title] {
+    position: relative;
+    cursor: help;
+}
+
+/* 确保表格单元格内容垂直居中 */
+.table td {
+    vertical-align: middle;
+}
+
+/* 优化按钮组的紧凑度 */
+.btn-group .btn {
+    padding: 0.25rem 0.4rem;
+    font-size: 0.75rem;
+}
+
+/* 模型详情样式 */
+.model-details .section-title {
+    color: #495057;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.model-details .detail-item {
+    margin-bottom: 0.5rem;
+}
+
+.model-details .detail-item label {
+    font-size: 0.875rem;
+    margin-bottom: 0.25rem;
+    display: block;
+}
+
+.model-details .table {
+    font-size: 0.875rem;
+}
+
+.model-details .table td {
+    vertical-align: middle;
+}
+
+.model-details .raw-data {
+    background-color: #f8f9fa;
+    border-radius: 0.25rem;
+    margin-top: 0.5rem;
+}
+
+.model-details .raw-data pre {
+    margin: 0;
+    padding: 1rem;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.toggle-raw-data {
+    font-size: 0.875rem;
+}
+
+.toggle-raw-data i {
+    margin-right: 0.25rem;
+}
+
+/* 部署参数样式优化 */
+.deployment-args {
+    background-color: #f8f9fa;
+    border-radius: 4px;
+    padding: 1rem;
+    margin: 0;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', monospace;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    white-space: pre;  /* 保留空格和换行 */
+    overflow-x: auto;
+}
+
+.deployment-args code {
+    color: #333;
+    background: none;
+    padding: 0;
+    font-family: inherit;
+    display: block;
+    width: 100%;
+}
+
+/* 确保所有折叠面板都展开 */
+.accordion-collapse.show {
+    display: block !important;
+}
+
+.accordion-button:not(.collapsed) {
+    background-color: #f8f9fa;
+    color: #333;
+    box-shadow: none;
+}
+
+.accordion-button:focus {
+    box-shadow: none;
+    border-color: rgba(0,0,0,.125);
+}
+</style>
+{% endblock %} 

@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="jumbotron">
+    <h1 class="display-4">欢迎使用模型管理系统</h1>
+    <p class="lead">这是一个用于管理语言模型及其端点(Endpoint)的管理系统。</p>
+    <hr class="my-4">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">模型管理</h5>
+                    <p class="card-text">查看和管理所有的语言模型及其 Endpoints。</p>
+                    <a href="{{ url_for('list_models') }}" class="btn btn-primary">
+                        <i class="bi bi-list-ul"></i> 查看模型列表
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <div>
+            <h2 class="mb-0 d-flex align-items-center">
+                <i class="bi bi-people me-2" style="font-size: 1.8rem; color: #0d6efd;"></i>
+                <span>用户管理</span>
+            </h2>
+            <small class="text-muted">管理系统用户和权限</small>
+        </div>
+        <a href="{{ url_for('add_user') }}" class="btn btn-success">
+            <i class="bi bi-person-plus"></i> 添加用户
+        </a>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>用户名</th>
+                        <th>账号</th>
+                        <th>角色</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                    <tr>
+                        <td>{{ user.username }}</td>
+                        <td>{{ user.account_name }}</td>
+                        <td>
+                            <span class="badge {% if user.role == 'admin' %}bg-danger{% elif user.role == 'operator' %}bg-primary{% else %}bg-info{% endif %}">
+                                {{ user.role }}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="btn-group">
+                                {% if user.account_name != 'admin' %}
+                                <a href="{{ url_for('edit_user', account_name=user.account_name) }}" 
+                                   class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-pencil"></i> 编辑
+                                </a>
+                                {% endif %}
+                                {% if user.account_name != 'admin' %}
+                                <button type="button" 
+                                        class="btn btn-sm btn-outline-danger"
+                                        onclick="confirmDelete('{{ user.account_name }}')">
+                                    <i class="bi bi-trash"></i> 删除
+                                </button>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- 删除确认模态框 -->
+<div class="modal fade" id="deleteConfirmModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">确认删除</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                确定要删除这个用户吗？此操作不可恢复。
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <form id="deleteForm" method="POST" style="display: inline;">
+                    <button type="submit" class="btn btn-danger">确认删除</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+function confirmDelete(accountName) {
+    const modal = new bootstrap.Modal(document.getElementById('deleteConfirmModal'));
+    const form = document.getElementById('deleteForm');
+    form.action = `/users/delete/${accountName}`;
+    modal.show();
+}
+</script>
+{% endblock %} 

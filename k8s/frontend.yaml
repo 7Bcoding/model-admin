@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: llm-ops-frontend
+  namespace: llm-ops
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: llm-ops-frontend
+  template:
+    metadata:
+      labels:
+        app: llm-ops-frontend
+    spec:
+      imagePullSecrets:
+      - name: ppinfra-registry-secret
+      containers:
+      - name: frontend
+        image: image.ppinfra.com/llm-ops/frontend:0.3.6
+        ports:
+        - containerPort: 80
+        env:
+        - name: BACKEND_HOST
+          value: "llm-ops-backend.llm-ops.svc.cluster.local"
+        - name: BACKEND_PORT
+          value: "8080"
+        resources:
+          requests:
+            cpu: "200m"
+            memory: "256Mi"
+          limits:
+            cpu: "500m"
+            memory: "512Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: llm-ops-frontend
+  namespace: llm-ops
+spec:
+  selector:
+    app: llm-ops-frontend
+  ports:
+  - port: 80
+    targetPort: 80
+  type: ClusterIP 

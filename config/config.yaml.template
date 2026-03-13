@@ -1,0 +1,36 @@
+aes_key: a7c234ae72f64405
+
+mysql:
+  host: localhost
+  port: 3306
+  user: root
+  password:  
+  database: llm_admin
+
+server:
+  port: 8080
+
+kubernetes:
+  config_path: ./kubeconfig/nitor-prod-config 
+  config_path_v2: ./kubeconfig/nebula-dev-config
+
+novita:
+  api_url: https://api.novita.ai
+  api_key: 8UQy4NeinOI6wv5uMKFFaZyM56xvz7cGvh+9DU/lJF+gXI0uFTIfQ46MiovVo1s5
+
+ppio:
+  api_url: https://api.ppinfra.com
+  api_key: lmdcra5vqsItl9MeB9szZAc6pLHel00ACwrqdU2P00NvjkcDwRrXg6UET3dMJq3+
+
+tracker:
+  base_url: https://tracker-server.pai-net.work
+  token: lqFyKBsaG8Q+woIRSxp0Ew==
+
+# Fusion 代理配置
+ppio_fusion:
+  url: https://api.ppinfra.com
+  token: # 加密后的 PPIO Fusion Token
+
+novita_fusion:
+  url: https://api.novita.ai
+  token: # 加密后的 Novita Fusion Token

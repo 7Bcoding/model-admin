@@ -1,0 +1,37 @@
+version: '3'
+services:
+  frontend:
+    build: 
+      context: ./frontend
+      dockerfile: Dockerfile
+    args:
+      - VITE_API_BASE_URL=/api
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - llm-ops-network
+    environment:
+      - BACKEND_HOST=backend
+      - BACKEND_PORT=8080
+
+  backend:
+    build: .
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./kubeconfig:/app/kubeconfig
+      - ./config/config.yaml.template:/app/config/config.yaml.template
+    environment:
+      - MYSQL_HOST=your-mysql-host
+      - MYSQL_PORT=3306
+      - MYSQL_USER=your-mysql-user
+      - MYSQL_PASSWORD=your-mysql-password
+      - MYSQL_DATABASE=your-mysql-database
+    networks:
+      - llm-ops-network
+
+networks:
+  llm-ops-network:
+    driver: bridge

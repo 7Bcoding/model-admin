@@ -1,0 +1,2285 @@
+{% extends "base.html" %}
+
+{% block head %}
+{{ super() }}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/github.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/languages/yaml.min.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <div class="d-flex align-items-center">
+            <h3 class="card-title mb-0 me-3">
+                <span class="text-muted">模型：</span>{{ model_data.model.model_name }}
+            </h3>
+            <div class="btn-group">
+                <a href="https://grafana.aicloud.pplabs.tech/d/kk_xQEjVc/llm-overview?orgId=1&var-model={{ model_data.model.model_name|urlencode }}&from=now-15m&to=now&refresh=5s"
+                   target="_blank"
+                   class="btn btn-sm btn-outline-primary"
+                   title="在 Grafana 中查看监控">
+                    <svg class="grafana-icon" viewBox="0 0 24 24" width="16" height="16" style="vertical-align: -3px;">
+                        <path fill="currentColor" d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm0 22.667C6.12 22.667 1.333 17.88 1.333 12S6.12 1.333 12 1.333 22.667 6.12 22.667 12 17.88 22.667 12 22.667zM12 4c-4.411 0-8 3.589-8 8s3.589 8 8 8 8-3.589 8-8-3.589-8-8-8zm0 14.667c-3.682 0-6.667-2.985-6.667-6.667S8.318 5.333 12 5.333 18.667 8.318 18.667 12 15.682 18.667 12 18.667zM12 8c-2.206 0-4 1.794-4 4s1.794 4 4 4 4-1.794 4-4-1.794-4-4-4z"/>
+                    </svg>
+                    overview
+                </a>
+                <a href="https://grafana.aicloud.pplabs.tech/d/b281712d-8bff-41ef-9f3f-71ad43c05e9bdd/vllm-per-model?orgId=1&var-model_name={{ model_data.model.model_name|urlencode }}"
+                   target="_blank"
+                   class="btn btn-sm btn-outline-secondary"
+                   title="查看模型监控">
+                    <svg class="grafana-icon" viewBox="0 0 24 24" width="16" height="16" style="vertical-align: -3px;">
+                        <path fill="currentColor" d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm0 22.667C6.12 22.667 1.333 17.88 1.333 12S6.12 1.333 12 1.333 22.667 6.12 22.667 12 17.88 22.667 12 22.667zM12 4c-4.411 0-8 3.589-8 8s3.589 8 8 8 8-3.589 8-8-3.589-8-8-8zm0 14.667c-3.682 0-6.667-2.985-6.667-6.667S8.318 5.333 12 5.333 18.667 8.318 18.667 12 15.682 18.667 12 18.667zM12 8c-2.206 0-4 1.794-4 4s1.794 4 4 4 4-1.794 4-4-1.794-4-4-4z"/>
+                    </svg>
+                    vllm
+                </a>
+                {% if model_data.endpoints %}
+                <a href="https://grafana.aicloud.pplabs.tech/d/KOpAVRCIz1/prod-overview?orgId=1{% for endpoint in model_data.endpoints %}{% if '.runsync.novita.dev' in endpoint.url %}&var-endpoint={{ endpoint.url.replace('https://', '').replace('http://', '').split('.runsync.novita.dev')[0] }}{% endif %}{% endfor %}&from=now-24h&to=now&refresh=5s"
+                   target="_blank"
+                   class="btn btn-sm btn-outline-info"
+                   title="查看 Serverless 监控">
+                    <svg class="grafana-icon" viewBox="0 0 24 24" width="16" height="16" style="vertical-align: -3px;">
+                        <path fill="currentColor" d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm0 22.667C6.12 22.667 1.333 17.88 1.333 12S6.12 1.333 12 1.333 22.667 6.12 22.667 12 17.88 22.667 12 22.667zM12 4c-4.411 0-8 3.589-8 8s3.589 8 8 8 8-3.589 8-8-3.589-8-8-8zm0 14.667c-3.682 0-6.667-2.985-6.667-6.667S8.318 5.333 12 5.333 18.667 8.318 18.667 12 15.682 18.667 12 18.667zM12 8c-2.206 0-4 1.794-4 4s1.794 4 4 4 4-1.794 4-4-1.794-4-4-4z"/>
+                    </svg>
+                    serverless
+                </a>
+                {% endif %}
+            </div>
+        </div>
+        {% if session['user'] in users and users[session['user']].can_modify() %}
+        <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addEndpointModal">
+            <i class="bi bi-plus-circle"></i> 添加 Endpoint
+        </button>
+        {% endif %}
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead>
+                    <tr>
+                        <th>Endpoint ID</th>
+                        <th>URL</th>
+                        <th>权重</th>
+                        <th>健康检查</th>
+                        <th>测试模式</th>
+                        <th>GPU 资源</th>
+                        <th>操作</th>
+                        <th>更新</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for endpoint in model_data.endpoints %}
+                    <tr>
+                        <td>
+                            <code>{{ endpoint.endpoint_id }}</code>
+                            {% if endpoint.url.endswith('.runsync.novita.dev') %}
+                            <span class="badge bg-info ms-1" title="Serverless">S</span>
+                            {% endif %}
+                        </td>
+                        <td style="max-width: 300px;">
+                            <div class="text-truncate" title="{{ endpoint.url }}">
+                                <small class="text-muted">{{ endpoint.url }}</small>
+                            </div>
+                        </td>
+                        <td>
+                            <form id="endpoint-form-{{ endpoint.endpoint_id }}" 
+                                  action="{{ url_for('update_endpoint', model_name=model_data.model.model_name, endpoint_id=endpoint.endpoint_id) }}" 
+                                  method="POST" class="d-flex align-items-center">
+                                <input type="number" class="form-control form-control-sm weight-input" 
+                                       name="weight" value="{{ endpoint.weight }}" style="width: 80px"
+                                       data-endpoint-id="{{ endpoint.endpoint_id }}"
+                                       {% if not (session['user'] in users and users[session['user']].can_modify()) %}disabled{% endif %}>
+                            </form>
+                        </td>
+                        <td style="text-align: center;">
+                            <div class="d-flex justify-content-center">
+                                <div class="form-check">
+                                    <input type="checkbox" 
+                                           class="form-check-input health-check-toggle" 
+                                           name="enable_check_health" 
+                                           {% if endpoint.enable_check_health %}checked{% endif %}
+                                           data-endpoint-id="{{ endpoint.endpoint_id }}"
+                                           {% if not (session['user'] in users and users[session['user']].can_modify()) %}disabled{% endif %}>
+                                </div>
+                            </div>
+                        </td>
+                        <td style="text-align: center;">
+                            <div class="d-flex justify-content-center">
+                                <div class="form-check">
+                                    <input type="checkbox" 
+                                           class="form-check-input testflight-toggle" 
+                                           name="enable_testflight" 
+                                           {% if endpoint.enable_testflight is sameas true %}checked{% endif %}
+                                           data-endpoint-id="{{ endpoint.endpoint_id }}"
+                                           {% if not (session['user'] in users and users[session['user']].can_modify()) %}disabled{% endif %}>
+                                </div>
+                            </div>
+                        </td>
+                        <td id="gpu-info-{{ loop.index0 }}">
+                            <div class="spinner-border spinner-border-sm text-info" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="btn-group" style="display: inline-flex;">
+                                <button type="button" class="btn btn-info btn-sm test-endpoint-btn" 
+                                        data-endpoint-url="{{ endpoint.url }}"
+                                        data-model-name="{{ model_data.model.model_name }}"
+                                        data-endpoint-id="{{ endpoint.endpoint_id }}">
+                                    测试
+                                </button>
+                                <button type="button" class="btn btn-secondary btn-sm view-endpoint-details" 
+                                        data-endpoint-id="{{ endpoint.endpoint_id }}"
+                                        data-endpoint-url="{{ endpoint.url }}"
+                                        data-endpoint-data='{{ endpoint|tojson|safe }}'>
+                                    详情
+                                </button>
+                                <button type="button" class="btn btn-outline-info btn-sm get-grafana-link"
+                                        data-endpoint-url="{{ endpoint.url }}"
+                                        title="查看实例面板">
+                                    <i class="bi bi-graph-up"></i>
+                                </button>
+                                {% if session['user'] in users and users[session['user']].can_modify() %}
+                                {% if endpoint.status == 'ENDPOINT_STATUS_SERVING' %}
+                                <button type="button" class="btn btn-danger btn-sm stop-endpoint" 
+                                        data-endpoint-id="{{ endpoint.endpoint_id }}">
+                                    停用
+                                </button>
+                                {% else %}
+                                <button type="button" class="btn btn-success btn-sm start-endpoint" 
+                                        data-endpoint-id="{{ endpoint.endpoint_id }}">
+                                    启用
+                                </button>
+                                {% endif %}
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td>
+                            {% if session['user'] in users and users[session['user']].can_modify() %}
+                            <button type="button" class="btn btn-sm btn-outline-primary update-weight-btn" 
+                                    data-endpoint-id="{{ endpoint.endpoint_id }}"
+                                    style="white-space: nowrap; width: 100%;">
+                                更新
+                            </button>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- 添加 Endpoint 模态框 -->
+<div class="modal fade" id="addEndpointModal" tabindex="-1">
+    <div class="modal-dialog modal-lg"> <!-- 增加模态框宽度 -->
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">添加 Endpoint</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{{ url_for('add_endpoint', model_name=model_data.model.model_name) }}" method="POST">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Endpoint ID</label>
+                        <input type="text" class="form-control" name="endpoint_id" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">URL</label>
+                        <div class="input-group">
+                            <input type="url" class="form-control" name="url" id="newEndpointUrl" required style="width: 100%;"> <!-- 确保 URL 输入框足够宽 -->
+                            <button type="button" class="btn btn-outline-primary test-new-endpoint-btn">
+                                测试
+                            </button>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">权重</label>
+                        <input type="number" class="form-control" name="weight" value="1" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Model ID Override</label>
+                        <input type="text" class="form-control" name="model_id_override" placeholder="可选，用于覆盖默认模型ID">
+                        <small class="text-muted">如果需要使用不同的模型ID，请在此处填写</small>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-check form-switch">
+                                <input type="checkbox" class="form-check-input" name="enable_check_health" id="newEnableHealth">
+                                <label class="form-check-label" for="newEnableHealth">启用健康检查</label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-check form-switch">
+                                <input type="checkbox" class="form-check-input" name="enable_testflight" id="newEnableTestflight">
+                                <label class="form-check-label" for="newEnableTestflight">启用测试模式</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="submit" class="btn btn-primary">添加</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- 测试结果态框 -->
+<div class="modal fade" id="testResultModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Endpoint 测试</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="testEndpointForm">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Endpoint URL</label>
+                                <input type="text" class="form-control" id="testEndpointUrl" readonly>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Model Name</label>
+                                <input type="text" class="form-control" id="testModelName" readonly>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">对话内容</label>
+                                <textarea class="form-control" id="testPrompt" rows="3">tell me about beijing</textarea>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">参数设置</label>
+                                <div class="row g-3">
+                                    <div class="col-6">
+                                        <label class="form-label small">Max Tokens</label>
+                                        <input type="number" class="form-control" id="testMaxTokens" value="8192">
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="form-label small">Temperature</label>
+                                        <input type="number" class="form-control" id="testTemperature" value="0.9" step="0.1" min="0" max="2">
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="form-label small">Top P</label>
+                                        <input type="number" class="form-control" id="testTopP" value="0.95" step="0.01" min="0" max="1">
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="form-check mt-4">
+                                            <input type="checkbox" class="form-check-input" id="testStream">
+                                            <label class="form-check-label" for="testStream">启用流式输出</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Stop Tokens</label>
+                                <textarea class="form-control" id="testStopTokens" rows="3"><|eot_id|>
+<|start_header_id|>
+<|end_header_id|></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary" id="runTestButton">
+                            <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                            运行测试
+                        </button>
+                    </div>
+                </form>
+                
+                <div class="mt-4">
+                    <h6>测试结果：</h6>
+                    <div class="test-result" style="display: none;">
+                        <div class="alert mb-3">
+                            <h6 class="result-title mb-2"></h6>
+                            <div class="result-message"></div>
+                        </div>
+                        
+                        <!-- 修改模回复内容显部分 -->
+                        <div class="model-response mb-3" style="display: none;">
+                            <h6>模型回：</h6>
+                            <div class="card">
+                                <div class="card-body">
+                                    <div class="model-content" style="white-space: pre-wrap; font-family: monospace;"></div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="response-details">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <h6 class="mb-0">响应详情：</h6>
+                                <button type="button" class="btn btn-sm btn-outline-secondary toggle-raw-response">
+                                    <i class="bi bi-code-square"></i> 查看原始响应
+                                </button>
+                            </div>
+                            <pre class="response-content bg-light p-3 rounded" style="max-height: 300px; overflow-y: auto; display: none;"></pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 修改 Endpoint 详情模态框 -->
+<div class="modal fade" id="endpointDetailsModal" tabindex="-1">
+    <div class="modal-dialog modal-xl" style="max-width: 95%; margin: 1.75rem auto;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Endpoint 详情</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <!-- 修改 Kubernetes 资源信息显示部分 -->
+                <div class="k8s-resources mb-4" style="display: none;">
+                    <h6>Kubernetes 资源</h6>
+                    <div class="card">
+                        <div class="card-body">
+                            <!-- SE 资源部分 -->
+                            <div class="accordion mb-3" id="seAccordion">
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header" id="seHeader">
+                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#seContent">
+                                            <strong>Serverless Endpoint (se)</strong>
+                                            <code class="se-resource-name text-muted ms-2"></code>
+                                        </button>
+                                    </h2>
+                                    <div id="seContent" class="accordion-collapse collapse" data-bs-parent="#seAccordion">
+                                        <div class="accordion-body">
+                                            <div class="d-flex justify-content-end mb-2">
+                                                <button type="button" class="btn btn-sm btn-outline-secondary fetch-k8s-resource" 
+                                                        data-resource-type="se">
+                                                    <i class="bi bi-cloud-download"></i> 获取资源信息
+                                                </button>
+                                            </div>
+                                            <div class="position-relative">
+                                                <pre class="se-resource bg-light p-2 mt-2 yaml-content" style="display: none; max-height: 300px; overflow: auto; position: relative;">
+                                                    <code class="language-yaml"></code>
+                                                    <button class="btn btn-sm btn-outline-secondary fullscreen-btn" 
+                                                            style="position: absolute; top: 8px; right: 8px; padding: 2px 6px; line-height: 1; opacity: 0.7;" 
+                                                            title="全屏查看">
+                                                        <i class="bi bi-arrows-fullscreen" style="font-size: 14px;"></i>
+                                                    </button>
+                                                </pre>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- SAP 资源部分 -->
+                            <div class="accordion mb-3" id="sapAccordion">
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header" id="sapHeader">
+                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#sapContent">
+                                            <strong>Scaling Policy (sap)</strong>
+                                            <code class="sap-resource-name text-muted ms-2"></code>
+                                        </button>
+                                    </h2>
+                                    <div id="sapContent" class="accordion-collapse collapse" data-bs-parent="#sapAccordion">
+                                        <div class="accordion-body">
+                                            <div class="d-flex justify-content-end mb-2">
+                                                <button type="button" class="btn btn-sm btn-outline-secondary fetch-k8s-resource" 
+                                                        data-resource-type="sap">
+                                                    <i class="bi bi-cloud-download"></i> 获取资源信息
+                                                </button>
+                                            </div>
+                                            <div class="position-relative">
+                                                <pre class="sap-resource bg-light p-2 mt-2 yaml-content" style="display: none; max-height: 300px; overflow: auto;">
+                                                    <code class="language-yaml"></code>
+                                                    <button class="btn btn-sm btn-outline-secondary position-absolute top-0 end-0 m-2 fullscreen-btn" 
+                                                            style="padding: 0.25rem 0.5rem;" title="查看">
+                                                        <i class="bi bi-arrows-fullscreen"></i>
+                                                    </button>
+                                                </pre>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Worker 概部分 -->
+                            <div class="accordion" id="workerAccordion">
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header" id="workerHeader">
+                                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#workerContent">
+                                            <strong>Workers 概览</strong>
+                                        </button>
+                                    </h2>
+                                    <div id="workerContent" class="accordion-collapse collapse show" data-bs-parent="#workerAccordion">
+                                        <div class="accordion-body">
+                                            <div class="d-flex justify-content-end mb-2">
+                                                <div class="btn-group">
+                                                    <button type="button" class="btn btn-sm btn-outline-secondary refresh-workers">
+                                                        <i class="bi bi-cloud-download"></i> 获取
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            
+                                            <!-- Worker 概览信息 -->
+                                            <div class="worker-summary card bg-light mb-3">
+                                                <div class="card-body">
+                                                    <div class="loading-spinner text-center" style="display: none;">
+                                                        <div class="spinner-border text-primary mb-2" role="status">
+                                                            <span class="visually-hidden">Loading...</span>
+                                                        </div>
+                                                        <p class="text-muted">加载中...</p>
+                                                    </div>
+                                                    <div class="worker-stats">
+                                                        <div class="row text-center">
+                                                            <div class="col">
+                                                                <h3 class="total-workers">-</h3>
+                                                                <small class="text-muted">总实例数</small>
+                                                            </div>
+                                                            <div class="col">
+                                                                <h3 class="healthy-workers">-</h3>
+                                                                <small class="text-muted">健康例数</small>
+                                                            </div>
+                                                            <div class="col">
+                                                                <h3 class="running-workers">-</h3>
+                                                                <small class="text-muted">运行中实例数</small>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Worker 列表 -->
+                                            <div class="workers-list">
+                                                <table class="table table-hover workers-table">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>Worker 名称</th>
+                                                            <th>并发数</th>
+                                                            <th>Provider</th>
+                                                            <th>集群 ID</th>
+                                                            <th>Instance ID</th>
+                                                            <th>状态</th>
+                                                            <th>健康状况</th>
+                                                            <th>操作</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody class="workers-content">
+                                                        <!-- Worker rows will be inserted here -->
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="accordion mb-3" id="configAccordion">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="configHeading">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#configCollapse">
+                                原始配置
+                            </button>
+                        </h2>
+                        <div id="configCollapse" class="accordion-collapse collapse" data-bs-parent="#configAccordion">
+                            <div class="accordion-body">
+                                <pre class="endpoint-details-content bg-light p-3 rounded" style="max-height: 500px; overflow-y: auto;"></pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 添 Worker YAML 详情模态框 -->
+<div class="modal fade" id="workerDetailModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Worker 详情</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <pre class="worker-yaml-content bg-light p-3 rounded" style="max-height: 500px; overflow-y: auto;">
+                    <code class="language-yaml"></code>
+                </pre>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 添加启用/停用的隐藏表单 -->
+{% for endpoint in model_data.endpoints %}
+<form id="stop-form-{{ endpoint.endpoint_id }}"
+      action="{{ url_for('update_endpoint', model_name=model_data.model.model_name, endpoint_id=endpoint.endpoint_id) }}" 
+      method="POST" style="display: none;">
+    <input type="hidden" name="status" value="ENDPOINT_STATUS_DELETED">
+</form>
+<form id="start-form-{{ endpoint.endpoint_id }}"
+      action="{{ url_for('update_endpoint', model_name=model_data.model.model_name, endpoint_id=endpoint.endpoint_id) }}" 
+      method="POST" style="display: none;">
+    <input type="hidden" name="status" value="ENDPOINT_STATUS_SERVING">
+</form>
+{% endfor %}
+
+<!-- 添加用/停用按钮的事件处理 -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // 首先定义 initializeTestModal 函数
+    function initializeTestModal(endpointUrl, modelName) {
+        document.getElementById('testEndpointUrl').value = endpointUrl;
+        document.getElementById('testModelName').value = modelName;
+    }
+
+    // 测试按钮点击处理
+    document.querySelectorAll('.test-endpoint-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const endpointUrl = this.dataset.endpointUrl;
+            const modelName = this.dataset.modelName;
+            
+            initializeTestModal(endpointUrl, modelName);
+            const modal = new bootstrap.Modal(document.getElementById('testResultModal'));
+            modal.show();
+        });
+    });
+
+    // 新增 Endpoint 的测试按
+    document.querySelector('.test-new-endpoint-btn').addEventListener('click', function() {
+        const endpointUrl = document.getElementById('newEndpointUrl').value;
+        if (!endpointUrl) {
+            alert('请先输入 Endpoint URL');
+            return;
+        }
+        
+        initializeTestModal(endpointUrl, '{{ model_data.model.model_name }}');
+        new bootstrap.Modal(document.getElementById('testResultModal')).show();
+    });
+
+    // 测试表单提交
+    document.getElementById('testEndpointForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const endpointUrl = document.getElementById('testEndpointUrl').value;
+        const modelName = document.getElementById('testModelName').value;
+        const runTestButton = document.getElementById('runTestButton');
+        const spinner = runTestButton.querySelector('.spinner-border');
+        
+        // 获取测试参数
+        const testParams = {
+            messages: [{
+                role: "user",
+                content: document.getElementById('testPrompt').value
+            }],
+            max_tokens: parseInt(document.getElementById('testMaxTokens').value),
+            temperature: parseFloat(document.getElementById('testTemperature').value),
+            top_p: parseFloat(document.getElementById('testTopP').value),
+            stream: document.getElementById('testStream').checked,
+            stop: document.getElementById('testStopTokens').value.split('\n').filter(s => s.trim())
+        };
+
+        // 禁用按钮并显示加载状态
+        runTestButton.disabled = true;
+        spinner.classList.remove('d-none');
+        
+        try {
+            const response = await fetch('/test_endpoint', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    endpoint_url: endpointUrl,
+                    model_name: modelName,
+                    test_params: testParams
+                })
+            });
+            
+            const result = await response.json();
+            const resultDiv = document.querySelector('.test-result');
+            resultDiv.style.display = 'block';
+            
+            if (result.success) {
+                resultDiv.querySelector('.alert').className = 'alert alert-success mb-3';
+                resultDiv.querySelector('.result-title').textContent = '测试成功';
+                
+                // 显示模型回复
+                const modelResponseDiv = resultDiv.querySelector('.model-response');
+                if (result.response && result.response.choices && result.response.choices[0]) {
+                    modelResponseDiv.style.display = 'block';
+                    modelResponseDiv.querySelector('.model-content').textContent = 
+                        result.response.choices[0].message.content;
+                } else {
+                    modelResponseDiv.style.display = 'none';
+                }
+            } else {
+                resultDiv.querySelector('.alert').className = 'alert alert-danger mb-3';
+                resultDiv.querySelector('.result-title').textContent = '测试失败';
+                resultDiv.querySelector('.model-response').style.display = 'none';
+            }
+            
+            resultDiv.querySelector('.result-message').textContent = result.message;
+            const responseContent = resultDiv.querySelector('.response-content');
+            responseContent.textContent = JSON.stringify(result.response, null, 2);
+            hljs.highlightElement(responseContent);
+                
+        } catch (error) {
+            const resultDiv = document.querySelector('.test-result');
+            resultDiv.style.display = 'block';
+            resultDiv.querySelector('.alert').className = 'alert alert-danger mb-3';
+            resultDiv.querySelector('.result-title').textContent = '测试失败';
+            resultDiv.querySelector('.result-message').textContent = '请求发送失败：' + error.message;
+            resultDiv.querySelector('.model-response').style.display = 'none';
+            resultDiv.querySelector('.response-content').textContent = '';
+        } finally {
+            runTestButton.disabled = false;
+            spinner.classList.add('d-none');
+        }
+    });
+
+    // 详情按点击处理
+    document.querySelectorAll('.view-endpoint-details').forEach(button => {
+        button.addEventListener('click', async function() {
+            try {
+                console.log('Detail button clicked');
+                const endpointData = JSON.parse(this.dataset.endpointData);
+                console.log('Endpoint data:', endpointData);
+                
+                const detailsContent = document.querySelector('.endpoint-details-content');
+                const k8sResources = document.querySelector('.k8s-resources');
+                
+                // �����������前的内�����
+                detailsContent.textContent = '';
+                k8sResources.style.display = 'none';
+                k8sResources.querySelector('.se-resource-name').textContent = '';
+                k8sResources.querySelector('.sap-resource-name').textContent = '';
+                document.querySelector('.workers-content').innerHTML = '';
+                document.querySelector('.total-workers').textContent = '-';
+                document.querySelector('.healthy-workers').textContent = '-';
+                document.querySelector('.running-workers').textContent = '-';
+                
+                // 显示原���置
+                detailsContent.textContent = JSON.stringify(endpointData, null, 2);
+                hljs.highlightElement(detailsContent);
+                
+                // 处理 Kubernetes 资源名称
+                if (endpointData.url && endpointData.url.endsWith('.runsync.novita.dev')) {
+                    k8sResources.style.display = 'block';
+                    
+                    // 提取 endpoint 名称
+                    const endpointName = endpointData.url
+                        .replace('https://', '')
+                        .replace('http://', '')
+                        .split('.runsync.novita.dev')[0];
+                    
+                    // 设置资源名称
+                    k8sResources.querySelector('.se-resource-name').textContent = endpointName;
+                    k8sResources.querySelector('.sap-resource-name').textContent = `${endpointName}-scaling-policy`;
+
+                    // 为所有按设置 endpoint URL
+                    document.querySelectorAll('.fetch-k8s-resource').forEach(btn => {
+                        btn.dataset.endpointUrl = endpointData.url;
+                    });
+                    document.querySelector('.refresh-workers').dataset.endpointUrl = endpointData.url;
+
+                    // 初始化 worker 统计信息为 0
+                    document.querySelector('.total-workers').textContent = '0';
+                    document.querySelector('.healthy-workers').textContent = '0';
+                    document.querySelector('.running-workers').textContent = '0';
+                    
+                    // 显示 worker 统计信区，隐藏加载动
+                    document.querySelector('.loading-spinner').style.display = 'none';
+                    document.querySelector('.worker-stats').style.display = 'block';
+                } else {
+                    k8sResources.style.display = 'none';
+                }
+                
+                // 显示模态框
+                const modalElement = document.getElementById('endpointDetailsModal');
+                const modal = new bootstrap.Modal(modalElement);
+                
+                // 在模态框隐藏后恢复焦点
+                modalElement.addEventListener('hidden.bs.modal', function () {
+                    button.focus();
+                }, { once: true });
+                
+                modal.show();
+            } catch (error) {
+                console.error('Error showing details:', error);
+                alert('显示详情失败: ' + error.message);
+            }
+        });
+    });
+
+    // 停按钮点击处理
+    document.querySelectorAll('.stop-endpoint').forEach(button => {
+        button.addEventListener('click', async function(event) {
+            event.preventDefault();  // 阻止默认行为
+            event.stopPropagation(); // 阻止事件冒泡
+            
+            // 权限检查
+            if (!canModify) {
+                alert('您没有权限执行此操作');
+                return;
+            }
+            
+            const endpointId = this.dataset.endpointId;
+            // 从页面上的隐藏元素或数据属性中获取 modelName
+            const modelName = document.querySelector('meta[name="model-name"]')?.content || 
+                             '{{ model_data.model.model_name }}';  // 从 Jinja2 模板变量获取
+            
+            // 二次确认
+            const confirmed = confirm(`确定要停用 Endpoint (${endpointId}) 吗？\n\n此操作会导致该 Endpoint 停止服务。`);
+            
+            console.log('=== Stop Endpoint Confirmation ===');
+            console.log('Model Name:', modelName);
+            console.log('Endpoint ID:', endpointId);
+            console.log('User confirmed:', confirmed);
+            
+            if (!confirmed) {
+                console.log('User cancelled the operation');
+                return;
+            }
+            
+            try {
+                console.log('Submitting stop form...');
+                const url = `/model/endpoint/delete/${modelName}/${endpointId}`;
+                console.log('Request URL:', url);  // 添加日志以便调试
+                
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const responseData = await response.json();
+                if (response.ok && responseData.success) {
+                    alert('操作成功');
+                    location.reload();
+                } else {
+                    throw new Error(responseData.message || '操作失败');
+                }
+            } catch (error) {
+                console.error('Error updating endpoint status:', error);
+                alert('操作失败: ' + error.message);
+            }
+        });
+    });
+
+    // 启用按钮点击处理
+    document.querySelectorAll('.start-endpoint').forEach(button => {
+        button.addEventListener('click', function() {
+            const endpointId = this.dataset.endpointId;
+            if (confirm(`确定要启用 Endpoint (${endpointId}) 吗？`)) {
+                document.getElementById(`start-form-${endpointId}`).submit();
+            }
+        });
+    });
+
+    // 添加获取 k8s 资源的事件监听器
+    document.querySelectorAll('.fetch-k8s-resource').forEach(button => {
+        console.log('Adding click listener to button:', button.dataset.resourceType);
+        
+        button.addEventListener('click', async function() {
+            console.log('Resource button clicked');
+            const resourceType = this.dataset.resourceType;
+            const endpointUrl = this.dataset.endpointUrl;
+            console.log('Resource type:', resourceType);
+            console.log('Endpoint URL:', endpointUrl);
+            
+            const resourcePre = document.querySelector(`.${resourceType}-resource`);
+            const codeElement = resourcePre.querySelector('code');
+            
+            // 显示加载状态
+            this.disabled = true;
+            this.innerHTML = '<span class="spinner-border spinner-border-sm"></span> 加载中...';
+            
+            try {
+                const response = await fetch('/endpoint/k8s_resources', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        endpoint_url: endpointUrl,
+                        resource_type: resourceType
+                    })
+                });
+                
+                console.log('Response received');
+                const result = await response.json();
+                console.log('Result:', result);
+                
+                if (result.success && result.data[resourceType]) {
+                    codeElement.textContent = result.data[resourceType];
+                    hljs.highlightElement(codeElement);
+                    resourcePre.style.display = 'block';
+                    
+                    this.innerHTML = '<i class="bi bi-check-circle"></i> 已经加载';
+                    this.classList.remove('btn-outline-secondary');
+                    this.classList.add('btn-success');
+                } else {
+                    throw new Error(result.message || '获资源失');
+                }
+            } catch (error) {
+                console.error('Error fetching k8s resource:', error);
+                this.classList.remove('btn-outline-secondary');
+                this.classList.add('btn-danger');
+                this.innerHTML = '<i class="bi bi-exclamation-circle"></i> 加载失败';
+                alert('获取源信息失败: ' + error.message);
+            } finally {
+                this.disabled = false;
+            }
+        });
+    });
+
+    // 修 worker 列更新函数
+    function updateWorkerList(workers) {
+        const workersContent = document.querySelector('.workers-content');
+        workersContent.innerHTML = '';  // 清现有内容
+        
+        workers.forEach(worker => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td><code>${worker.name}</code></td>
+                <td>0</td>  <!-- 添加并发数列，初始值为 0 -->
+                <td>${worker.provider}</td>
+                <td>${worker.cluster_id}</td>
+                <td class="instance-id" data-worker-name="${worker.name}">-</td>
+                <td>
+                    <span class="badge ${worker.stage === 'Running' ? 'bg-success' : 'bg-danger'}">
+                        ${worker.stage}
+                    </span>
+                </td>
+                <td>
+                    <span class="badge ${worker.healthy ? 'bg-success' : 'bg-danger'}">
+                        ${worker.healthy ? '健康' : '不健康'}
+                    </span>
+                </td>
+                <td>
+                    <button type="button" class="btn btn-sm btn-outline-secondary show-worker-yaml" 
+                            data-worker-name="${worker.name}">
+                        <i class="bi bi-file-text"></i> YAML
+                    </button>
+                </td>
+            `;
+            workersContent.appendChild(row);
+        });
+
+        // 为新添加的 YAML 按钮绑定事件
+        workersContent.querySelectorAll('.show-worker-yaml').forEach(button => {
+            button.addEventListener('click', async function() {
+                const workerName = this.dataset.workerName;
+                try {
+                    const response = await fetch('/worker/yaml', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            worker_name: workerName
+                        })
+                    });
+                    
+                    const result = await response.json();
+                    if (result.success) {
+                        // 解析 YAML 获取 instanceID
+                        const yamlDoc = jsyaml.load(result.data);
+                        const instanceId = yamlDoc?.status?.realInstanceID || '-';
+                        
+                        // 更新 instanceID 显示
+                        const instanceIdCell = document.querySelector(`.instance-id[data-worker-name="${workerName}"]`);
+                        if (instanceIdCell) {
+                            instanceIdCell.textContent = instanceId;
+                        }
+                        
+                        // 获取模态框元素
+                        const modal = document.getElementById('fullscreenYamlModal');
+                        const codeElement = modal.querySelector('code');
+                        
+                        // 设置 YAML 内容
+                        codeElement.textContent = result.data;
+                        
+                        // 高亮显示
+                        hljs.highlightElement(codeElement);
+                        
+                        // 显示模态框
+                        new bootstrap.Modal(modal).show();
+                    } else {
+                        throw new Error(result.message || '获取 YAML 失败');
+                    }
+                } catch (error) {
+                    console.error('Error fetching worker YAML:', error);
+                    alert('获取 YAML 失败: ' + error.message);
+                }
+            });
+        });
+
+        // 更新统计信息
+        document.querySelector('.total-workers').textContent = workers.length;
+        document.querySelector('.healthy-workers').textContent = workers.filter(w => w.healthy).length;
+        document.querySelector('.running-workers').textContent = workers.filter(w => w.stage === 'Running').length;
+
+        // 获取 endpoint URL 并立即开始获取并发数据
+        const refreshButton = document.querySelector('.refresh-workers');
+        const endpointUrl = refreshButton.dataset.endpointUrl;
+        if (endpointUrl) {
+            startConcurrencyUpdates(endpointUrl);
+        }
+    }
+
+    // 添加新的发数据更新理函数
+    function startConcurrencyUpdates(endpointUrl) {
+        console.log('Starting concurrency updates for:', endpointUrl);
+        
+        // 清除现有的定时器
+        if (window.concurrencyInterval) {
+            clearInterval(window.concurrencyInterval);
+        }
+
+        // 立即执行一次更新
+        updateWorkerConcurrency(endpointUrl);
+
+        // 设置定时更新，每5秒更新一次
+        window.concurrencyInterval = setInterval(() => {
+            console.log('Running scheduled concurrency update');
+            updateWorkerConcurrency(endpointUrl);
+        }, 5000);
+    }
+
+    // 修改并发数据更新函数
+    async function updateWorkerConcurrency(endpointUrl) {
+        try {
+            console.log('Starting concurrency update for endpoint:', endpointUrl);
+            
+            // 提取正确的endpoint_id
+            const endpoint_id = endpointUrl
+                .replace('https://', '')
+                .replace('http://', '')
+                .split('.runsync.novita.dev')[0];
+            
+            console.log('Extracted endpoint_id:', endpoint_id);
+            
+            const encodedUrl = encodeURIComponent(endpointUrl);
+            const proxyUrl = `/proxy/metrics?endpoint=${encodedUrl}`;
+            console.log('Making request to:', proxyUrl);
+
+            const response = await fetch(proxyUrl);
+            console.log('Response status:', response.status);
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            console.log('Received metrics data:', data);
+
+            // 更新并发数和统计信息
+            const concurrencyMap = {};
+            let totalConcurrency = 0;
+            
+            if (data.worker_concurrency && Array.isArray(data.worker_concurrency)) {
+                data.worker_concurrency.forEach(item => {
+                    if (item.worker_id && typeof item.concurrency === 'number') {
+                        concurrencyMap[item.worker_id] = item.concurrency;
+                        totalConcurrency += item.concurrency;
+                        console.log(`Worker ${item.worker_id} concurrency: ${item.concurrency}`);
+                    }
+                });
+            }
+
+            // 更新每个 worker 的并发数
+            document.querySelectorAll('.workers-content tr').forEach(row => {
+                const workerIdElement = row.querySelector('td:first-child code');
+                if (!workerIdElement) return;
+                
+                const workerId = workerIdElement.textContent;
+                const concurrencyCell = row.querySelector('td:nth-child(2)');
+                if (!concurrencyCell) return;
+                
+                const concurrency = concurrencyMap[workerId] || 0;
+                console.log(`Updating worker ${workerId} with concurrency: ${concurrency}`);
+
+                // 更新并发数和颜色
+                concurrencyCell.textContent = concurrency;
+                concurrencyCell.style.color = concurrency > 8 ? '#dc3545' : 
+                                            concurrency > 5 ? '#ffc107' : '#198754';
+            });
+
+            console.log('Concurrency update completed');
+            console.log('Total concurrency:', totalConcurrency);
+        } catch (error) {
+            console.error('Error updating concurrency:', error);
+            console.error('Error details:', error.message);
+            if (error.response) {
+                console.error('Response:', await error.response.text());
+            }
+        }
+    }
+
+    // 添加全屏按钮事件处理
+    document.querySelectorAll('.fullscreen-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const yamlContent = this.closest('pre').querySelector('code').textContent;
+            const modalCode = document.querySelector('#fullscreenYamlModal code');
+            modalCode.textContent = yamlContent;
+            hljs.highlightElement(modalCode);
+            
+            const modal = new bootstrap.Modal(document.getElementById('fullscreenYamlModal'));
+            modal.show();
+        });
+    });
+
+    // 修改 worker 获取按钮的事处理，直接在脚本块中不套在其他事监听器
+    (function() {
+        console.log('Setting up worker refresh button handler - IIFE');
+        
+        // 获按钮
+        const refreshButton = document.querySelector('.refresh-workers');
+        console.log('Refresh button found:', refreshButton);
+        
+        if (refreshButton) {
+            // 直接定点击事件
+            refreshButton.onclick = async function(e) {
+                e.preventDefault();
+                console.log('Worker refresh button clicked');
+                const endpointUrl = this.dataset.endpointUrl;
+                console.log('Endpoint URL for worker refresh:', endpointUrl);
+                
+                if (!endpointUrl) {
+                    console.error('No endpoint URL found for worker refresh');
+                    return;
+                }
+
+                // 显示加载状态
+                this.disabled = true;
+                const isInitialLoad = this.innerHTML.includes('获取');
+                this.innerHTML = `<span class="spinner-border spinner-border-sm"></span> ${isInitialLoad ? '获取中...' : '刷新中...'}`;
+                
+                // 显示加载动画
+                const loadingSpinner = document.querySelector('.loading-spinner');
+                const workerStats = document.querySelector('.worker-stats');
+                loadingSpinner.style.display = 'block';
+                workerStats.style.display = 'none';
+                
+                try {
+                    console.log('Sending request to get worker info');
+                    const response = await fetch('/endpoint/k8s_resources', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            endpoint_url: endpointUrl,
+                            resource_type: 'workers'
+                        })
+                    });
+                    
+                    console.log('Got response from worker info request');
+                    const result = await response.json();
+                    console.log('Worker info result:', result);
+                    
+                    if (result.success && result.data.workers) {
+                        updateWorkerList(result.data.workers);
+                        this.innerHTML = '<i class="bi bi-arrow-clockwise"></i> 刷新';
+                    } else {
+                        throw new Error(result.message || '获取 worker 信息失败');
+                    }
+                } catch (error) {
+                    console.error('Error loading workers:', error);
+                    this.innerHTML = '<i class="bi bi-cloud-download"></i> 获取';
+                    alert('获取 worker 信息失败: ' + error.message);
+                } finally {
+                    this.disabled = false;
+                    loadingSpinner.style.display = 'none';
+                    workerStats.style.display = 'block';
+                }
+            };
+            
+            console.log('Event handler attached to refresh button');
+        } else {
+            console.error('Refresh workers button not found in DOM');
+        }
+    })();
+
+    // 监听折叠状态变化
+    const workerContent = document.getElementById('workerContent');
+    if (workerContent) {
+        workerContent.addEventListener('shown.bs.collapse', function() {
+            const endpointUrl = document.querySelector('.refresh-workers')?.dataset.endpointUrl;
+            if (endpointUrl) {
+                console.log('Worker list expanded, starting concurrency updates');
+                startConcurrencyUpdates(endpointUrl);
+            }
+        });
+
+        workerContent.addEventListener('hidden.bs.collapse', function() {
+            console.log('Worker list collapsed, stopping updates');
+            if (window.concurrencyInterval) {
+                clearInterval(window.concurrencyInterval);
+                window.concurrencyInterval = null;
+            }
+        });
+    }
+
+    // 并发数据更新管理函数
+    function startConcurrencyUpdates(endpointUrl) {
+        console.log('Starting concurrency updates for:', endpointUrl);
+        
+        // 清除现有的定时器
+        if (window.concurrencyInterval) {
+            clearInterval(window.concurrencyInterval);
+        }
+
+        // 立即执行一次更新
+        updateWorkerConcurrency(endpointUrl);
+
+        // 设置定时更新，每5秒更新一次
+        window.concurrencyInterval = setInterval(() => {
+            console.log('Running scheduled concurrency update');
+            updateWorkerConcurrency(endpointUrl);
+        }, 5000);
+    }
+
+    // 处理 Grafana 链按钮点击
+    document.querySelectorAll('.get-grafana-link').forEach(button => {
+        button.addEventListener('click', async function() {
+            const endpointUrl = this.dataset.endpointUrl;
+            try {
+                // 获取 SE 资源
+                const response = await fetch('/endpoint/k8s_resources', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        endpoint_url: endpointUrl,
+                        resource_type: 'se'
+                    })
+                });
+
+                const result = await response.json();
+                if (result.success && result.data.se) {
+                    const seData = jsyaml.load(result.data.se);
+                    const envVars = seData?.spec?.template?.spec?.containers?.[0]?.env || [];
+                    
+                    // 获取必要的参数
+                    let modelName = '';
+                    let provider = '';
+                    
+                    for (const env of envVars) {
+                        if (env.name === 'METRIC_MODEL') {
+                            modelName = env.value;
+                        } else if (!modelName && env.name === 'MODEL_ID') {
+                            modelName = env.value;
+                        } else if (env.name === 'GPU_PROVIDER') {
+                            provider = env.value;
+                        }
+                    }
+
+                    if (modelName && provider) {
+                        // 构建并开 Grafana URL
+                        const grafanaUrl = `https://grafana.aicloud.pplabs.tech/d/b281712d-8bff-41ef-9f3f-71ad43c05e9b/vllm-per-instance?orgId=1&var-model_name=${encodeURIComponent(modelName)}&var-provider=${encodeURIComponent(provider)}`;
+                        window.open(grafanaUrl, '_blank');
+                    } else {
+                        alert('无法获取必要的监控数');
+                    }
+                } else {
+                    throw new Error('Failed to get SE resource');
+                }
+            } catch (error) {
+                console.error('Error getting Grafana link:', error);
+                alert('获取监控链接失败');
+            }
+        });
+    });
+
+    // 获取当用角色
+    const currentUser = {{ users[session['user']].to_dict()|tojson|safe }};
+    const canModify = currentUser && ['admin', 'operator'].includes(currentUser.role);
+
+    // 处理权重更新按钮点击
+    document.querySelectorAll('.update-weight-btn').forEach(button => {
+        button.addEventListener('click', async function() {
+            if (!canModify) {
+                alert('您没有权限执行此操作');
+                return;
+            }
+            const endpointId = this.dataset.endpointId;
+            
+            // 获取表单元素
+            const weightInput = document.querySelector(`.weight-input[data-endpoint-id="${endpointId}"]`);
+            const healthCheck = document.querySelector(`.health-check-toggle[data-endpoint-id="${endpointId}"]`);
+            const testflight = document.querySelector(`.testflight-toggle[data-endpoint-id="${endpointId}"]`);
+            
+            // 打印调试信息
+            console.log('=== Update Endpoint ===');
+            console.log('Endpoint ID:', endpointId);
+            console.log('Weight:', weightInput.value);
+            console.log('Health Check:', healthCheck.checked);
+            console.log('Testflight:', testflight.checked);
+            
+            try {
+                const requestData = {
+                    weight: parseInt(weightInput.value),
+                    enable_check_health: healthCheck.checked,
+                    enable_testflight: testflight.checked
+                };
+                
+                console.log('Sending request with data:', JSON.stringify(requestData, null, 2));
+                
+                const response = await fetch(`/model/endpoint/update/{{ model_data.model.model_name }}/${endpointId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(requestData)
+                });
+                
+                const responseData = await response.json();
+                console.log('Response:', responseData);
+                
+                if (response.ok && responseData.success) {
+                    alert('更新成功');
+                } else {
+                    throw new Error(responseData.message || '更新失败');
+                }
+            } catch (error) {
+                console.error('Error updating endpoint:', error);
+                alert('更新失败: ' + error.message);
+            }
+        });
+    });
+
+    // 处理启用/停用按钮
+    document.querySelectorAll('.start-endpoint').forEach(button => {
+        button.addEventListener('click', async function() {
+            if (!canModify) {
+                alert('您没有权限执行此操作');
+                return;
+            }
+            
+            const endpointId = this.dataset.endpointId;
+            const modelName = '{{ model_data.model.model_name }}';  // 从模板获取模型名称
+            const isStop = this.classList.contains('stop-endpoint');
+            
+            console.log('=== Endpoint Status Update ===');
+            console.log('Model Name:', modelName);
+            console.log('Endpoint ID:', endpointId);
+            console.log('Action:', isStop ? 'Stop' : 'Start');
+            
+            try {
+                const url = `/model/endpoint/${isStop ? 'delete' : 'start'}/${modelName}/${endpointId}`;
+                console.log('Request URL:', url);
+                
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                console.log('Response status:', response.status);
+                const responseData = await response.json();
+                console.log('Response data:', responseData);
+                
+                if (response.ok && responseData.success) {
+                    alert('操作成功');
+                    location.reload();
+                } else {
+                    throw new Error(responseData.message || '操作失败');
+                }
+            } catch (error) {
+                console.error('Error updating endpoint status:', error);
+                alert('操作失败: ' + error.message);
+            }
+        });
+    });
+
+    // 获取 YAML 详情的函数
+    async function getEndpointYaml(endpointId) {
+        try {
+            const response = await fetch(`/endpoint/yaml/${endpointId}`);
+            const data = await response.json();
+            
+            if (!data.success) {
+                throw new Error(data.error || '获取 YAML 败');
+            }
+            
+            return data.yaml;
+        } catch (error) {
+            console.error('Error fetching YAML:', error);
+            throw error;
+        }
+    }
+
+    // YAML 按钮点击事件处理
+    document.querySelectorAll('.view-yaml-btn').forEach(button => {
+        button.addEventListener('click', async function() {
+            try {
+                // 从 URL 中提取 endpoint_id
+                const endpointUrl = this.closest('tr').querySelector('.text-truncate').getAttribute('title');
+                const endpoint_id = endpointUrl
+                    .replace('https://', '')
+                    .replace('http://', '')
+                    .split('.runsync.novita.dev')[0];
+                    
+                console.log('Getting YAML for endpoint:', endpoint_id);
+                
+                const yamlModal = document.getElementById('yamlModal');
+                const yamlContent = yamlModal.querySelector('.yaml-content');
+                const spinner = yamlModal.querySelector('.spinner-border');
+                
+                // 显示模态框和加载动画
+                const modal = new bootstrap.Modal(yamlModal);
+                modal.show();
+                spinner.style.display = 'block';
+                yamlContent.style.display = 'none';
+                
+                const response = await fetch(`/endpoint/yaml/${endpoint_id}`);
+                const data = await response.json();
+                
+                if (!data.success) {
+                    throw new Error(data.error || '获取 YAML 失败');
+                }
+                
+                yamlContent.textContent = data.yaml;
+                yamlContent.style.display = 'block';
+                
+                // 高亮显示
+                if (hljs) {
+                    hljs.highlightElement(yamlContent);
+                }
+                
+            } catch (error) {
+                console.error('Error fetching YAML:', error);
+                yamlContent.textContent = `获取 YAML 失败: ${error.message}`;
+                yamlContent.style.display = 'block';
+            } finally {
+                spinner.style.display = 'none';
+            }
+        });
+    });
+
+    // 异步加载 GPU 资源信息
+    async function loadGpuInfo(endpoint) {
+        if (!endpoint.url || !endpoint.url.includes('.runsync.novita.dev')) {
+            return 'N/A';
+        }
+
+        const endpoint_id = endpoint.url
+            .replace('https://', '')
+            .replace('http://', '')
+            .split('.runsync.novita.dev')[0];
+            
+        try {
+            const response = await fetch(`/endpoint/se/${endpoint_id}`);
+            if (!response.ok) throw new Error('Failed to fetch SE info');
+            
+            const seInfo = await response.json();
+            const containers = seInfo?.spec?.template?.spec?.containers || [];
+            if (containers.length > 0) {
+                const gpu_requests = containers[0]?.resources?.gpuRequests || {};
+                const gpu_models = gpu_requests.models || [];
+                const gpu_number = gpu_requests.number;
+                
+                if (gpu_models.length > 0 && gpu_number) {
+                    return `${gpu_models[0]} * ${gpu_number}`;
+                }
+            }
+            return 'N/A';
+        } catch (error) {
+            console.error(`Error loading GPU info for ${endpoint_id}:`, error);
+            return 'Error';
+        }
+    }
+
+    // 为每个 endpoint 加载 GPU 信息
+    const endpoints = {{ model_data.endpoints|tojson|safe }};
+    endpoints.forEach(async (endpoint, index) => {
+        const gpuCell = document.querySelector(`#gpu-info-${index}`);
+        if (gpuCell) {
+            gpuCell.innerHTML = '<div class="spinner-border spinner-border-sm text-info" role="status"><span class="visually-hidden">Loading...</span></div>';
+            const gpuInfo = await loadGpuInfo(endpoint);
+            gpuCell.innerHTML = `<span class="badge bg-info">${gpuInfo}</span>`;
+        }
+    });
+
+    // 清理定时任务
+    window.addEventListener('beforeunload', function() {
+        if (window.concurrencyInterval) {
+            clearInterval(window.concurrencyInterval);
+            window.concurrencyInterval = null;
+        }
+    });
+
+    // 存储所有的定时器
+    let timers = {
+        concurrencyInterval: null,
+        metricsInterval: null
+    };
+
+    // 监听模态框关闭事件
+    const endpointDetailsModal = document.getElementById('endpointDetailsModal');
+    endpointDetailsModal.addEventListener('hidden.bs.modal', function () {
+        // 清除所有定时器
+        Object.values(timers).forEach(timer => {
+            if (timer) {
+                clearInterval(timer);
+            }
+        });
+        timers = {
+            concurrencyInterval: null,
+            metricsInterval: null
+        };
+        console.log('Modal closed, all intervals cleared');
+    });
+
+    // 修改 startConcurrencyUpdates 函数
+    function startConcurrencyUpdates(endpointUrl) {
+        console.log('Starting concurrency updates for:', endpointUrl);
+        
+        // 清除现有的定时器
+        if (timers.concurrencyInterval) {
+            clearInterval(timers.concurrencyInterval);
+        }
+
+        // 立即执行一次更新
+        updateWorkerConcurrency(endpointUrl);
+
+        // 设置定时更新，每5秒更新一次
+        timers.concurrencyInterval = setInterval(() => {
+            console.log('Running scheduled concurrency update');
+            updateWorkerConcurrency(endpointUrl);
+        }, 5000);
+    }
+
+    // 修改 metrics 相关的定时器
+    function startMetricsUpdates(endpointUrl) {
+        if (timers.metricsInterval) {
+            clearInterval(timers.metricsInterval);
+        }
+        
+        // 立即执行一次更新
+        updateMetrics(endpointUrl);
+        
+        // 设置定时更新
+        timers.metricsInterval = setInterval(() => {
+            updateMetrics(endpointUrl);
+        }, 5000);
+    }
+});
+</script>
+
+<!-- 添加权重分布饼图 -->
+<div class="card mt-4">
+    <div class="card-header">
+        <h5 class="card-title mb-0">权重分布</h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-8">
+                <canvas id="weightPieChart" style="height: 400px;"></canvas>
+            </div>
+            <div class="col-md-4">
+                <div class="weight-legend" style="max-height: 400px; overflow-y: auto;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 添加 Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<!-- 添加饼图初始化代码 -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // 获取权重数据
+    const weightInputs = document.querySelectorAll('.weight-input');
+    const labels = [];
+    const weights = [];
+    const endpointNames = [];
+    const colors = [
+        '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF',
+        '#FF9F40', '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0'
+    ];
+    
+    weightInputs.forEach((input, index) => {
+        const endpointId = input.closest('tr').querySelector('td:first-child code')?.textContent;
+        const urlElement = input.closest('tr').querySelector('.text-truncate');
+        if (!endpointId || !urlElement) return;
+        
+        const url = urlElement.getAttribute('title');
+        const endpointName = url.includes('.runsync.novita.dev') ? 
+            url.replace('https://', '').replace('http://', '').split('.runsync.novita.dev')[0] :
+            url;
+        
+        labels.push(endpointId);
+        endpointNames.push(endpointName);
+        weights.push(parseInt(input.value) || 0);
+    });
+    
+    const totalWeight = weights.reduce((a, b) => a + b, 0);
+    const percentages = weights.map(w => ((w / totalWeight) * 100).toFixed(1));
+    
+    if (totalWeight > 0) {  // 只在有数据时创建图表
+        // 创建饼图
+        const ctx = document.getElementById('weightPieChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: weights,
+                    backgroundColor: colors.slice(0, weights.length),
+                    borderWidth: 1,
+                    borderColor: '#ffffff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0,0,0,0.8)',
+                        padding: 12,
+                        titleFont: {
+                            size: 14,
+                            weight: 'bold'
+                        },
+                        bodyFont: {
+                            size: 13
+                        },
+                        callbacks: {
+                            label: function(context) {
+                                const label = context.label || '';
+                                const value = context.raw || 0;
+                                const percentage = ((value / totalWeight) * 100).toFixed(1);
+                                return `${label}: ${value} (${percentage}%)`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        
+        // 更新图例
+        const legendContainer = document.querySelector('.weight-legend');
+        legendContainer.innerHTML = ''; // 清空现有内容
+        labels.forEach((label, index) => {
+            const legendItem = document.createElement('div');
+            legendItem.className = 'd-flex align-items-start mb-3 p-2 rounded';
+            legendItem.innerHTML = `
+                <div style="width: 24px; height: 24px; background-color: ${colors[index]}; margin-right: 12px; border-radius: 4px; flex-shrink: 0;"></div>
+                <div class="small" style="flex-grow: 1;">
+                    <div class="fw-bold mb-1" style="font-size: 0.95rem;">${label}</div>
+                    <div class="text-muted">
+                        <div style="font-size: 0.85rem;">${endpointNames[index]}</div>
+                        <div style="font-size: 0.85rem; color: #666;">权重: ${weights[index]} (${percentages[index]}%)</div>
+                    </div>
+                </div>
+            `;
+            legendContainer.appendChild(legendItem);
+        });
+    }
+});
+</script>
+
+<!-- 修改权重分比计算的代码 -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const weightInputs = document.querySelectorAll('.weight-input');
+    
+    function calculatePercentages() {
+        // 计算权重
+        let totalWeight = 0;
+        weightInputs.forEach(input => {
+            totalWeight += parseInt(input.value) || 0;
+        });
+        
+        // 更新每个 endpoint 的百分比
+        weightInputs.forEach(input => {
+            try {
+                const weight = parseInt(input.value) || 0;
+                const percentage = totalWeight > 0 ? (weight / totalWeight * 100).toFixed(1) : '0.0';
+                const endpointId = input.dataset.endpointId;
+                const percentageSpan = document.querySelector(`.weight-percentage[data-endpoint-id="${endpointId}"]`);
+                
+                if (percentageSpan) {  // 添加检查
+                    percentageSpan.textContent = `(${percentage}%)`;
+                    
+                    // 根据百分比设置颜色
+                    if (percentage > 50) {
+                        percentageSpan.style.color = '#dc3545'; // 红色
+                    } else if (percentage > 30) {
+                        percentageSpan.style.color = '#ffc107'; // 黄色
+                    } else {
+                        percentageSpan.style.color = '#198754'; // 绿色
+                    }
+                }
+            } catch (error) {
+                console.error('Error updating percentage for endpoint:', error);
+            }
+        });
+    }
+    
+    // 初始计算百分比
+    if (weightInputs.length > 0) {  // 添加检查
+        calculatePercentages();
+        
+        // 监听所有权重输入框的变化
+        weightInputs.forEach(input => {
+            input.addEventListener('input', calculatePercentages);
+        });
+    }
+});
+</script>
+
+<!-- 修改全屏查看模态框 -->
+<div class="modal fade" id="fullscreenYamlModal" tabindex="-1">
+    <div class="modal-dialog modal-fullscreen">  <!-- 改回全屏模式 -->
+        <div class="modal-content">
+            <div class="modal-header py-2">  <!-- 减小头部高度 -->
+                <h5 class="modal-title">YAML 详情</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-0">  <!-- 移除内边距 -->
+                <pre style="height: calc(100vh - 60px); margin: 0; border-radius: 0;"><code class="language-yaml"></code></pre>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 添加负载更新相关的 JavaScript -->
+<script>
+// 修改负载更新函数
+async function updateWorkerConcurrency(endpointUrl) {
+    try {
+        console.log('Starting concurrency update for endpoint:', endpointUrl);
+        
+        // 提取正确的endpoint_id
+        const endpoint_id = endpointUrl
+            .replace('https://', '')
+            .replace('http://', '')
+            .split('.runsync.novita.dev')[0];
+            
+        console.log('Extracted endpoint_id:', endpoint_id);
+        
+        const encodedUrl = encodeURIComponent(endpointUrl);
+        const proxyUrl = `/proxy/metrics?endpoint=${encodedUrl}`;
+        console.log('Making request to:', proxyUrl);
+
+        const response = await fetch(proxyUrl);
+        console.log('Response status:', response.status);
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        console.log('Received metrics data:', data);
+
+        // 更新并发数和统计信
+        const concurrencyMap = {};
+        let totalConcurrency = 0;
+        
+        if (data.worker_concurrency && Array.isArray(data.worker_concurrency)) {
+            data.worker_concurrency.forEach(item => {
+                if (item.worker_id && typeof item.concurrency === 'number') {
+                    concurrencyMap[item.worker_id] = item.concurrency;
+                    totalConcurrency += item.concurrency;
+                    console.log(`Worker ${item.worker_id} concurrency: ${item.concurrency}`);
+                }
+            });
+        }
+
+        // 更新每个 worker 的并发数
+        document.querySelectorAll('.workers-content tr').forEach(row => {
+            const workerIdElement = row.querySelector('td:first-child code');
+            if (!workerIdElement) return;
+            
+            const workerId = workerIdElement.textContent;
+            const concurrencyCell = row.querySelector('td:nth-child(2)');
+            if (!concurrencyCell) return;
+            
+            const concurrency = concurrencyMap[workerId] || 0;
+            console.log(`Updating worker ${workerId} with concurrency: ${concurrency}`);
+
+            // 更新并发数和颜色
+            concurrencyCell.textContent = concurrency;
+            concurrencyCell.style.color = concurrency > 8 ? '#dc3545' : 
+                                        concurrency > 5 ? '#ffc107' : '#198754';
+        });
+
+        console.log('Concurrency update completed');
+        console.log('Total concurrency:', totalConcurrency);
+    } catch (error) {
+        console.error('Error updating concurrency:', error);
+        console.error('Error details:', error.message);
+        if (error.response) {
+            console.error('Response:', await error.response.text());
+        }
+    }
+}
+
+// 修改 startConcurrencyUpdates 函数
+function startConcurrencyUpdates(endpointUrl) {
+    console.log('Starting concurrency updates for:', endpointUrl);
+    
+    // 清除现有的定时器
+    if (timers.concurrencyInterval) {
+        clearInterval(timers.concurrencyInterval);
+    }
+
+    // 立即执行一次更新
+    updateWorkerConcurrency(endpointUrl);
+
+    // 设置定时更新，每5秒更新一次
+    timers.concurrencyInterval = setInterval(() => {
+        console.log('Running scheduled concurrency update');
+        updateWorkerConcurrency(endpointUrl);
+    }, 5000);
+}
+
+// 修改 worker 列表展开/折叠的事件处理
+document.getElementById('workerContent').addEventListener('shown.bs.collapse', function() {
+    const endpointUrl = document.querySelector('.refresh-workers')?.dataset.endpointUrl;
+    if (endpointUrl) {
+        console.log('Worker list expanded, starting concurrency updates');
+        startConcurrencyUpdates(endpointUrl);
+    }
+});
+
+document.getElementById('workerContent').addEventListener('hidden.bs.collapse', function() {
+    console.log('Worker list collapsed, stopping updates');
+    if (timers.concurrencyInterval) {
+        clearInterval(timers.concurrencyInterval);
+        timers.concurrencyInterval = null;
+    }
+});
+
+// 修改 metrics 相关的定时器
+function startMetricsUpdates(endpointUrl) {
+    if (timers.metricsInterval) {
+        clearInterval(timers.metricsInterval);
+    }
+    
+    // 立即执行一次更新
+    updateMetrics(endpointUrl);
+    
+    // 设置定时更新
+    timers.metricsInterval = setInterval(() => {
+        updateMetrics(endpointUrl);
+    }, 5000);
+}
+</script>
+
+<!-- 添加样式 -->
+<style>
+.fullscreen-btn {
+    transition: opacity 0.2s;
+}
+.fullscreen-btn:hover {
+    opacity: 1 !important;
+}
+.yaml-content:hover .fullscreen-btn {
+    opacity: 0.9;
+}
+.btn {
+    white-space: nowrap;  /* 防止按钮文字换行 */
+    padding: 0.25rem 0.5rem;  /* 小按钮内边距 */
+}
+.btn-group {
+    white-space: nowrap;  /* 防止按组换行 */
+}
+.btn-group .btn {
+    padding: 0.25rem 0.5rem;  /* 统一设置按组中按钮的内边距 */
+}
+
+/* GPU 信息徽章样式 */
+.badge.bg-info {
+    font-family: monospace;
+    font-size: 0.85rem;
+    padding: 0.4em 0.6em;
+    white-space: nowrap;
+}
+
+/* 当 GPU 信息为 Error 时的样式 */
+.badge.bg-info:contains('Error') {
+    background-color: #dc3545 !important;
+}
+
+/* 当 GPU 信息为 N/A 时的样式 */
+.badge.bg-info:contains('N/A') {
+    background-color: #6c757d !important;
+}
+
+/* 表格列宽控制 */
+.table th:nth-child(1) {  /* Endpoint ID 列 */
+    width: 20%;  /* 增加 ID 列宽度 */
+}
+.table th:nth-child(2) {  /* URL 列 */
+    width: 40%;  /* 增加 URL 列宽度 */
+}
+.table th:nth-child(3) {  /* 权重列 */
+    width: 6%;  /* 减小权重列宽度 */
+}
+.table th:nth-child(4),
+.table th:nth-child(5) {  /* 健康检查和测试模式列 */
+    width: 4%;  /* 减小这两列宽度 */
+    text-align: center;
+}
+.table th:nth-child(6) {  /* GPU 资源列 */
+    width: 10%;  /* 减小 GPU 资源列宽度 */
+}
+.table th:nth-child(7) {  /* 操作列 */
+    width: 12%;  /* 减小操作列宽度 */
+}
+.table th:nth-child(8) {  /* 更新列 */
+    width: 4%;  /* 减小更新列宽度 */
+}
+
+/* URL 文本截断 */
+.text-truncate {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Serverless 标记样式 */
+.badge.bg-info[title="Serverless"] {
+    font-size: 0.7rem;
+    padding: 0.2em 0.4em;
+    vertical-align: middle;
+}
+
+/* Worker 列表的列宽控制 */
+.workers-table th:nth-child(1) {  /* Worker 名称列 */
+    width: 25%;
+    text-align: left;
+}
+.workers-table th:nth-child(2) {  /* 并发数列 */
+    width: 8%;
+    text-align: center;
+}
+.workers-table th:nth-child(3) {  /* Provider 列 */
+    width: 12%;
+    text-align: left;
+}
+.workers-table th:nth-child(4) {  /* 集群 ID 列 */
+    width: 20%;
+    text-align: left;
+}
+.workers-table th:nth-child(5) {  /* Instance ID 列 */
+    width: 15%;
+    text-align: left;
+}
+.workers-table th:nth-child(6) {  /* 状态列 */
+    width: 8%;
+    text-align: center;
+}
+.workers-table th:nth-child(7) {  /* 健康状况列 */
+    width: 8%;
+    text-align: center;
+}
+.workers-table th:nth-child(8) {  /* 操作列 */
+    width: 4%;
+    text-align: center;
+}
+
+/* 确保表格单元格内容对齐方式与表头一致 */
+.workers-table td {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.workers-table td:nth-child(2),
+.workers-table td:nth-child(6),
+.workers-table td:nth-child(7),
+.workers-table td:nth-child(8) {
+    text-align: center;
+}
+
+/* 增加模态框宽度 */
+#endpointDetailsModal .modal-dialog {
+    max-width: 90%;  /* 使用屏幕宽度的 90% */
+    margin: 1.75rem auto;
+}
+
+/* 优化内部布局 */
+#endpointDetailsModal .modal-body {
+    padding: 1.5rem;
+}
+
+/* 调整 K8s 资源部分的布局 */
+.k8s-resources .card {
+    margin-bottom: 1rem;
+}
+
+/* 调整 worker 列表的容器宽度 */
+.workers-list {
+    width: 100%;
+    overflow-x: auto;
+}
+
+/* 确保表格能够充分利用空间 */
+.workers-table {
+    width: 100%;
+    min-width: 800px;  /* 设置最小宽度确保内容不会过于拥挤 */
+}
+
+/* 优化代码块的显示 */
+.endpoint-details-content,
+.worker-yaml-content {
+    width: 100%;
+    max-height: 500px;
+    overflow: auto;
+}
+
+/* 调整资源代码块的布局 */
+.resource-code {
+    margin: 0.5rem 0;
+    background-color: #f8f9fa;
+    border-radius: 4px;
+}
+
+/* 增加容器宽度 */
+.container {
+    max-width: 95% !important;  /* 覆盖 Bootstrap 默认宽度 */
+}
+
+/* 调整卡片边距 */
+.card {
+    margin: 1rem 0;
+}
+
+/* 优化表格布局 */
+.table-responsive {
+    margin: 0;  /* 移除表格容器的边距 */
+}
+
+.table {
+    margin-bottom: 0;  /* 移除表格底部边距 */
+}
+
+/* 调整卡片内边距 */
+.card-body {
+    padding: 1rem;  /* 减小内边距 */
+}
+
+/* 调整按钮组间距 */
+.btn-group {
+    margin-right: 0.5rem;  /* 减小按钮组之间的间距 */
+}
+
+/* 优化表格单元格内边距 */
+.table td, .table th {
+    padding: 0.5rem;  /* 减小单元格内边距 */
+}
+
+/* 权重分布样式 */
+.weight-distribution {
+    width: 100%;
+    padding: 2rem;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    margin: 1rem 0;
+}
+
+/* 饼图和图例的布局 */
+.weight-chart-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 2rem;
+}
+
+/* 饼图容器 */
+.pie-chart {
+    width: 300px;  /* 固定饼图大小 */
+    height: 300px;
+}
+
+/* 图例样式 */
+.chart-legend {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.legend-color {
+    width: 16px;
+    height: 16px;
+    border-radius: 4px;
+}
+
+.legend-text {
+    font-size: 0.9rem;
+}
+
+.legend-url {
+    color: #6c757d;
+    font-size: 0.8rem;
+    margin-top: 0.2rem;
+}
+
+/* 部署信息样式 */
+.deployment-info {
+    white-space: nowrap;  /* 防止换行 */
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;  /* 参数之间的间距 */
+}
+
+.deployment-info span {
+    display: inline-block;
+}
+</style>
+
+<!-- YAML 模态框 -->
+<div class="modal fade" id="yamlModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">YAML 详情</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="text-center spinner-border" style="display: none;" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <pre><code class="yaml-content language-yaml"></code></pre>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 权重分布部分 -->
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // 定义 updateWorkerList 函数
+    function updateWorkerList(workers) {
+        const workersContent = document.querySelector('.workers-content');
+        workersContent.innerHTML = '';  // 清空现内容
+        
+        workers.forEach(worker => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td><code>${worker.name}</code></td>
+                <td>0</td>  <!-- 添加并发数列，初始值为 0 -->
+                <td>${worker.provider}</td>
+                <td>${worker.cluster_id}</td>
+                <td class="instance-id" data-worker-name="${worker.name}">-</td>
+                <td>
+                    <span class="badge ${worker.stage === 'Running' ? 'bg-success' : 'bg-danger'}">
+                        ${worker.stage}
+                    </span>
+                </td>
+                <td>
+                    <span class="badge ${worker.healthy ? 'bg-success' : 'bg-danger'}">
+                        ${worker.healthy ? '健康' : '不健康'}
+                    </span>
+                </td>
+                <td>
+                    <button type="button" class="btn btn-sm btn-outline-secondary show-worker-yaml" 
+                            data-worker-name="${worker.name}">
+                        <i class="bi bi-file-text"></i> YAML
+                    </button>
+                </td>
+            `;
+            workersContent.appendChild(row);
+        });
+
+        // 为新添加的 YAML 按钮绑定事件
+        workersContent.querySelectorAll('.show-worker-yaml').forEach(button => {
+            button.addEventListener('click', async function() {
+                const workerName = this.dataset.workerName;
+                try {
+                    const response = await fetch('/worker/yaml', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            worker_name: workerName
+                        })
+                    });
+                    
+                    const result = await response.json();
+                    if (result.success) {
+                        // 解析 YAML 获取 instanceID
+                        const yamlDoc = jsyaml.load(result.data);
+                        const instanceId = yamlDoc?.status?.realInstanceID || '-';
+                        
+                        // 更新 instanceID 显示
+                        const instanceIdCell = document.querySelector(`.instance-id[data-worker-name="${workerName}"]`);
+                        if (instanceIdCell) {
+                            instanceIdCell.textContent = instanceId;
+                        }
+                        
+                        // 获取模态框元素
+                        const modal = document.getElementById('fullscreenYamlModal');
+                        const codeElement = modal.querySelector('code');
+                        
+                        // 设置 YAML 内容
+                        codeElement.textContent = result.data;
+                        
+                        // 高亮显示
+                        hljs.highlightElement(codeElement);
+                        
+                        // 显示模态框
+                        new bootstrap.Modal(modal).show();
+                    } else {
+                        throw new Error(result.message || '获取 YAML 失败');
+                    }
+                } catch (error) {
+                    console.error('Error fetching worker YAML:', error);
+                    alert('获取 YAML 失: ' + error.message);
+                }
+            });
+        });
+
+        // 更新统计信息
+        document.querySelector('.total-workers').textContent = workers.length;
+        document.querySelector('.healthy-workers').textContent = workers.filter(w => w.healthy).length;
+        document.querySelector('.running-workers').textContent = workers.filter(w => w.stage === 'Running').length;
+
+        // 获取 endpoint URL 并立即开始获取并发数据
+        const refreshButton = document.querySelector('.refresh-workers');
+        const endpointUrl = refreshButton.dataset.endpointUrl;
+        if (endpointUrl) {
+            startConcurrencyUpdates(endpointUrl);
+        }
+    }
+
+    // Worker 刷新按钮点击处理
+    const refreshButton = document.querySelector('.refresh-workers');
+    if (refreshButton) {
+        refreshButton.addEventListener('click', async function() {
+            console.log('Worker refresh button clicked');
+            const endpointUrl = this.dataset.endpointUrl;
+            console.log('Endpoint URL for worker refresh:', endpointUrl);
+            
+            if (!endpointUrl) {
+                console.error('No endpoint URL found for worker refresh');
+                return;
+            }
+
+            // 显示加载状态
+            this.disabled = true;
+            this.innerHTML = '<span class="spinner-border spinner-border-sm"></span> 刷新中...';
+            
+            try {
+                const response = await fetch('/endpoint/k8s_resources', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        endpoint_url: endpointUrl,
+                        resource_type: 'workers'
+                    })
+                });
+                
+                const result = await response.json();
+                if (result.success && result.data.workers) {
+                    updateWorkerList(result.data.workers);
+                    this.innerHTML = '<i class="bi bi-arrow-clockwise"></i> 刷新';
+                    
+                    // 启动并发数据更新
+                    startConcurrencyUpdates(endpointUrl);
+                } else {
+                    throw new Error(result.message || '获取 worker 信失败');
+                }
+            } catch (error) {
+                console.error('Error loading workers:', error);
+                this.innerHTML = '<i class="bi bi-cloud-download"></i> 获取';
+                alert('获取 worker 信息失败: ' + error.message);
+            } finally {
+                this.disabled = false;
+            }
+        });
+    }
+
+    // 监听折叠态变化
+    const workerContent = document.getElementById('workerContent');
+    if (workerContent) {
+        workerContent.addEventListener('shown.bs.collapse', function() {
+            const endpointUrl = document.querySelector('.refresh-workers')?.dataset.endpointUrl;
+            if (endpointUrl) {
+                console.log('Worker list expanded, starting concurrency updates');
+                startConcurrencyUpdates(endpointUrl);
+            }
+        });
+
+        workerContent.addEventListener('hidden.bs.collapse', function() {
+            console.log('Worker list collapsed, stopping updates');
+            if (timers.concurrencyInterval) {
+                clearInterval(timers.concurrencyInterval);
+                timers.concurrencyInterval = null;
+            }
+        });
+    }
+
+    // 并发数据更新管理函数
+    function startConcurrencyUpdates(endpointUrl) {
+        console.log('Starting concurrency updates for:', endpointUrl);
+        
+        // 清除现有的定时器
+        if (timers.concurrencyInterval) {
+            clearInterval(timers.concurrencyInterval);
+        }
+
+        // 立即执行一次更新
+        updateWorkerConcurrency(endpointUrl);
+
+        // 设置定时更新，每5秒更新一次
+        timers.concurrencyInterval = setInterval(() => {
+            console.log('Running scheduled concurrency update');
+            updateWorkerConcurrency(endpointUrl);
+        }, 5000);
+    }
+});
+
+    // 并发数据更新管理函数
+    function startConcurrencyUpdates(endpointUrl) {
+        console.log('Starting concurrency updates for:', endpointUrl);
+        
+        // 清除现有的定时器
+        if (timers.concurrencyInterval) {
+            clearInterval(timers.concurrencyInterval);
+        }
+
+        // 立即执行一次更新
+        updateWorkerConcurrency(endpointUrl);
+
+        // 设置定时更新，每5秒更新一次
+        timers.concurrencyInterval = setInterval(() => {
+            console.log('Running scheduled concurrency update');
+            updateWorkerConcurrency(endpointUrl);
+        }, 5000);
+    }
+});
+</script>
+{% endblock %} 

@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>添加新模型</h2>
+<form method="POST">
+    <div class="mb-3">
+        <label for="model_name" class="form-label">模型名称</label>
+        <input type="text" class="form-control" id="model_name" name="model_name" required>
+    </div>
+    
+    <div class="mb-3">
+        <label for="description" class="form-label">描述</label>
+        <textarea class="form-control" id="description" name="description" rows="3"></textarea>
+    </div>
+    
+    <div class="mb-3">
+        <label for="stops" class="form-label">Stop Tokens (用逗号分隔)</label>
+        <input type="text" class="form-control" id="stops" name="stops">
+    </div>
+    
+    <div class="mb-3">
+        <label for="context_size" class="form-label">上下文大小</label>
+        <input type="number" class="form-control" id="context_size" name="context_size" required>
+    </div>
+    
+    <div class="mb-3">
+        <label for="input_price" class="form-label">输入价格 (每百万token)</label>
+        <input type="number" class="form-control" id="input_price" name="input_price" required>
+    </div>
+    
+    <div class="mb-3">
+        <label for="output_price" class="form-label">输出价格 (每百万token)</label>
+        <input type="number" class="form-control" id="output_price" name="output_price" required>
+    </div>
+    
+    <div class="mb-3 form-check">
+        <input type="checkbox" class="form-check-input" id="private" name="private">
+        <label class="form-check-label" for="private">私有模型</label>
+    </div>
+    
+    <button type="submit" class="btn btn-primary">添加模型</button>
+</form>
+{% endblock %} 

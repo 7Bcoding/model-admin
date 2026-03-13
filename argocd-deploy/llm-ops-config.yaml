@@ -1,0 +1,34 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: llm-ops-config
+  namespace: llm-ops
+data:
+  config.yaml: |
+    aes_key: a7c234ae72f64405
+    mysql:
+      host: 10.1.162.13
+      port: 3306
+      user: root
+      password: 9phWWFcXLO5inuxtIPh8Qmdxw7Y83PV55Fv3PF3fBw0=
+      database: llm_ops
+
+    server:
+      port: 8080
+
+    kubernetes:
+      config_path: /app/kubeconfig
+      config_path_v2: /app/kubeconfig-v2
+
+    novita:
+      api_url: https://api.novita.ai
+      api_key: 8UQy4NeinOI6wv5uMKFFaZyM56xvz7cGvh+9DU/lJF+gXI0uFTIfQ46MiovVo1s5
+
+    ppio:
+      api_url: https://api.ppinfra.com
+      api_key: lmdcra5vqsItl9MeB9szZAc6pLHel00ACwrqdU2P00NvjkcDwRrXg6UET3dMJq3+
+
+    tracker:
+      base_url: https://tracker-server.pai-net.work
+      token: lqFyKBsaG8Q+woIRSxp0Ew==
+

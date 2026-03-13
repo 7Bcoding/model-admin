@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: llm-ops-frontend
+  namespace: llm-ops
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: llm-ops-frontend
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: llm-ops-frontend
+    spec:
+      containers:
+      - env:
+        - name: BACKEND_HOST
+          value: llm-ops-backend.llm-ops.svc.cluster.local
+        - name: BACKEND_PORT
+          value: "8080"
+        - name: BACKEND_PPIO
+          value: https://fusion-admin.paigod.work
+        - name: BACKEND_NOVITA
+          value: https://fusion-admin.pplabs.tech
+        - name: FUSION_NOVITA_TOKEN
+          value: Xz8.kJ-Qo!2v_Rt@uY.5sP*gN3aC9x
+        - name: FUSION_PPIO_TOKEN
+          value: Xz8.kJ-Qo!2v_Rt@uY.5sP*gN3aC9x
+        image: image.ppinfra.com/llm-ops/frontend:0.7.0
+        imagePullPolicy: IfNotPresent
+        name: frontend
+        ports:
+        - containerPort: 80
+          protocol: TCP
+        resources:
+          limits:
+            cpu: 500m
+            memory: 512Mi
+          requests:
+            cpu: 200m
+            memory: 256Mi
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+      dnsPolicy: ClusterFirst
+      imagePullSecrets:
+      - name: ppinfra-registry-secret
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+

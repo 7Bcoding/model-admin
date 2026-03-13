@@ -1,0 +1,18 @@
+# 忽略用户数据文件
+main
+users.json 
+__pycache__
+__pycache__/
+
+.env*
+!.env.example
+
+node_modules
+frontend/.vite/
+
+.vscode/
+
+vendor/*
+vendor/
+llm-ops
+llm-admin

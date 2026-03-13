@@ -1,0 +1,1788 @@
+syntax = "proto3";
+
+package nexus_api_server.api.v1;
+
+import "google/api/annotations.proto";
+import "validate/validate.proto";
+import "google/protobuf/timestamp.proto";
+
+option go_package = "nexus/api/nexus-api-server/v1;nexus_api_server_v1";
+
+service NexusApi {
+  // instance create
+  rpc CreateInstance(CreateInstanceRequest) returns (CreateInstanceResponse) {
+    option (google.api.http) = {
+      post: "/v1/instances"
+      body: "*"
+    };
+  }
+  // instance get
+  rpc GetInstance(GetInstanceRequest) returns (GetInstanceResponse) {
+    option (google.api.http) = {
+      get: "/v1/instances/{id}"
+    };
+  }
+  // instance inspect
+  rpc InspectInstance(InspectInstanceRequest) returns (InspectInstanceResponse) {
+    option (google.api.http) = {
+      get: "/v1/instances-inspect/{id}"
+    };
+  }
+  // instance update state
+  rpc UpdateInstanceState(UpdateInstanceStateRequest)returns (UpdateInstanceStateResponse) {
+    option (google.api.http) = {
+      put: "/v1/instances/{id}/state"
+      body: "*"
+    };
+  }
+  // instance inspect list
+  rpc ListInspectInstances(ListInspectInstancesRequest) returns (ListInspectInstancesResponse) {
+    option (google.api.http) = {
+      get: "/v1/instances-inspect"
+    };
+  }
+  // instance list
+  rpc ListInstances(ListInstancesRequest) returns (ListInstancesResponse) {
+    option (google.api.http) = {
+      get: "/v1/instances"
+    };
+  }
+
+  rpc WatchReconcilerSet(WatchReconcilerSetRequest) returns (stream WatchReconcilerSetResponse) {
+
+  }
+
+  // instance start
+  rpc StartInstance(StartInstanceRequest) returns (StartInstanceResponse) {
+    option (google.api.http) = {
+      put: "/v1/instances/{id}/start"
+    };
+  }
+  // instance stop
+  rpc StopInstance(StopInstanceRequest) returns (StopInstanceResponse) {
+    option (google.api.http) = {
+      put: "/v1/instances/{id}/stop"
+    };
+  }
+  // instance delete
+  rpc DeleteInstance(DeleteInstanceRequest) returns (DeleteInstanceResponse) {
+    option (google.api.http) = {
+      delete: "/v1/instances/{id}"
+    };
+  }
+  // instance freeze
+  rpc FreezeInstance(FreezeInstanceRequest) returns (FreezeInstanceResponse) {
+    option (google.api.http) = {
+      put: "/v1/instances/{id}/freeze"
+    };
+  }
+  // instance unfreeze
+  rpc UnFreezeInstance(UnFreezeInstanceRequest) returns (UnFreezeInstanceResponse) {
+    option (google.api.http) = {
+      put: "/v1/instances/{id}/unfreeze"
+    };
+  }
+  // instance reschedule
+  rpc ReSchedule(ReScheduleInstanceRequest) returns (ReScheduleInstanceResponse) {
+    option (google.api.http) = {
+      put: "/v1/instances/{id}/reschedule"
+      body: "*"
+    };
+  }
+  // instance scale down
+  rpc ScaleDownInstance(ScaleDownInstanceRequest) returns (ScaleDownInstanceResponse) {
+    option (google.api.http) = {
+      put: "/v1/instances/{id}/scaleDown"
+      body: "*"
+    };
+  }
+  // instance start web terminal
+  rpc StartInstanceWebTerminal(StartInstanceWebTerminalRequest) returns (StartInstanceWebTerminalResponse) {
+    option (google.api.http) = {
+      put: "/v1/instances/{id}/webterminal/start"
+    };
+  }
+  // instance stop web terminal
+  rpc StopInstanceWebTerminal(StopInstanceWebTerminalRequest) returns (StopInstanceWebTerminalResponse) {
+    option (google.api.http) = {
+      put: "/v1/instances/{id}/webterminal/stop"
+    };
+  }
+  // instance reset
+  rpc ResetInstance(ResetInstanceRequest) returns (ResetInstanceResponse) {
+    option (google.api.http) = {
+      put: "/v1/instances/{id}/reset"
+      body: "*"
+    };
+  }
+  // instance migrate
+  rpc MigrateInstance(MigrateInstanceRequest) returns (MigrateInstanceResponse) {
+    option (google.api.http) = {
+      put: "/v1/instances/{id}/migrate"
+    };
+  }
+  // instance set local volume
+  rpc SetInstanceLocalVolume(SetInstanceLocalVolumeRequest) returns (SetInstanceLocalVolumeResponse) {
+    option (google.api.http) = {
+      put: "/v1/instances/{id}/local-volume"
+      body: "*"
+    };
+  }
+  // instance set expose ports
+  rpc SetInstanceExposePorts(SetInstanceExposePortsRequest) returns (SetInstanceExposePortsResponse) {
+    option (google.api.http) = {
+      put: "/v1/instances/{id}/expose-ports"
+      body: "*"
+    };
+  }
+  // node get
+  rpc GetNode(GetNodeRequest) returns (GetNodeResponse) {
+    option (google.api.http) = {
+      get: "/v1/nodes/{id}"
+    };
+  }
+  // node reconciler set get
+  rpc GetNodeReconcilerSet(GetNodeReconcilerSetRequest) returns (GetNodeReconcilerSetResponse) {
+    option (google.api.http) = {
+      get: "/v1/nodes/{id}/reconcilersets"
+    };
+  }
+  // node reconciler set update state
+  rpc UpdateNodeReconcilerSetState(UpdateNodeReconcilerSetStateRequest) returns (UpdateNodeReconcilerSetStateResponse) {
+    option (google.api.http) = {
+      put: "/v1/nodes/{id}/reconcilersets/state"
+    };
+  }
+
+  // node daemon set get
+  rpc GetNodeDaemonSet(GetNodeDaemonSetRequest) returns (GetNodeDaemonSetResponse) {
+    option (google.api.http) = {
+      get: "/v1/nodes/{id}/daemonsets"
+    };
+  }
+  // node daemon set update state
+  rpc UpdateNodeDaemonSetState(UpdateNodeDaemonSetStateRequest) returns (UpdateNodeDaemonSetStateResponse) {
+    option (google.api.http) = {
+      put: "/v1/nodes/{id}/daemonsets"
+    };
+  }
+  // node list
+  rpc ListNodes(ListNodesRequest) returns (ListNodesResponse) {
+    option (google.api.http) = {
+      get: "/v1/nodes"
+    };
+  }
+  // node create
+  rpc CreateNode(CreateNodeRequest) returns (CreateNodeResponse) {
+    option (google.api.http) = {
+      post: "/v1/nodes"
+      body: "*"
+    };
+  }
+  // node delete
+  rpc DeleteNode(DeleteNodeRequest) returns (DeleteNodeResponse) {
+    option (google.api.http) = {
+      delete: "/v1/nodes/{id}"
+    };
+  }
+  // node set label
+  rpc SetNodeLabel(SetNodeLabelRequest) returns (SetNodeLabelResponse) {
+    option (google.api.http) = {
+      put: "/v1/nodes/{id}/label"
+      body: "*"
+    };
+  }
+  // node set schedulable
+  rpc SetNodeSchedulable(SetNodeSchedulableRequest) returns (SetNodeSchedulableResponse) {
+    option (google.api.http) = {
+      put: "/v1/nodes/{id}/schedulable"
+      body: "*"
+    };
+  }
+  // node set capacity
+  rpc SetNodeCapacity(SetNodeCapacityRequest) returns (SetNodeCapacityResponse) {
+    option (google.api.http) = {
+      put: "/v1/nodes/{id}/capacity"
+      body: "*"
+    };
+  }
+  // node select
+  rpc SelectNode(SelectNodeRequest) returns (SelectNodeResponse) {
+    option (google.api.http) = {
+      get: "/v1/select/nodes"
+    };
+  }
+  // node select by gpus
+  rpc SelectNodeByGpus(SelectNodeByGpusRequest) returns (SelectNodeByGpusResponse) {
+    option (google.api.http) = {
+      get: "/v1/select/nodes/gpus"
+    };
+  }
+  // node select by cpus
+  rpc SelectNodeByCpu(SelectNodeByCpuRequest) returns (SelectNodeByCpuResponse) {
+    option (google.api.http) = {
+      get: "/v1/select/nodes/cpu"
+    };
+  }
+  // node update state
+  rpc UpdateNodeState(UpdateNodeStateRequest)returns (UpdateNodeStateResponse) {
+    option (google.api.http) = {
+      put: "/v1/nodes/{id}/state"
+      body: "*"
+    };
+  }
+  // forward get
+  rpc GetForward(GetForwardRequest) returns (GetForwardResponse) {
+    option (google.api.http) = {
+      get: "/v1/forwards/{id}"
+    };
+  }
+  // forward list
+  rpc ListForwards(ListForwardsRequest) returns (ListForwardsResponse) {
+    option (google.api.http) = {
+      get: "/v1/forwards"
+    };
+  }
+  // endpoint config get
+  rpc GetEndpointConfigs(GetEndpointConfigsRequest) returns (GetEndpointConfigsResponse) {
+    option (google.api.http) = {
+      get: "/v1/endpointconfigs"
+    };
+  }
+  // endpoint update state
+  rpc UpdateEndpointStates(UpdateEndpointStatesRequest) returns (UpdateEndpointStatesResponse) {
+    option (google.api.http) = {
+      put: "/v1/endpointstates"
+    };
+  }
+  // endpoint get
+  rpc GetEndpoint(GetEndpointRequest) returns (GetEndpointResponse) {
+    option (google.api.http) = {
+      get: "/v1/endpoints/{id}"
+    };
+  }
+  // endpoint list
+  rpc ListEndpoints(ListEndpointsRequest) returns (ListEndpointsResponse) {
+    option (google.api.http) = {
+      get: "/v1/endpoints"
+    };
+  }
+  // endpoint create
+  rpc CreateEndpoint(CreateEndpointRequest) returns (CreateEndpointResponse) {
+    option (google.api.http) = {
+      post: "/v1/endpoints"
+      body: "*"
+    };
+  }
+  // token generate
+  rpc GenerateToken(GenerateTokenRequest) returns(GenerateTokenResponse) {
+    option (google.api.http) = {
+      post: "/v1/token"
+      body: "*"
+    };
+  }
+  // token get
+  rpc GetToken(GetTokenRequest) returns(GetTokenResponse) {
+    option (google.api.http) = {
+      get: "/v1/token/{role}/{name}"
+    };
+  }
+  // token revoke
+  rpc RevokeToken(RevokeTokenRequest) returns (RevokeTokenResponse) {
+    option (google.api.http) = {
+      delete: "/v1/token"
+    };
+  }
+  // network volume create
+  rpc CreateVolume(CreateVolumeRequest) returns (CreateVolumeResponse) {
+    option (google.api.http) = {
+      post: "/v1/volumes"
+      body: "*"
+    };
+  }
+  // network volume delete
+  rpc DeleteVolume(DeleteVolumeRequest) returns (DeleteVolumeResponse) {
+    option (google.api.http) = {
+      delete: "/v1/volumes"
+    };
+  }
+  // network volume set size
+  rpc SetVolume(SetVolumeRequest) returns (SetVolumeResponse) {
+    option (google.api.http) = {
+      put: "/v1/volumes/{id}/size"
+      body: "*"
+    };
+  }
+  // network volume update state
+  rpc UpdateVolumeState(UpdateVolumeStateRequest) returns (UpdateVolumeStateResponse) {
+    option (google.api.http) = {
+      put: "/v1/volumes/{id}/state"
+      body: "*"
+    };
+  }
+  // network volume get
+  rpc GetVolume(GetVolumeRequest) returns (GetVolumeResponse) {
+    option (google.api.http) = {
+      get: "/v1/volumes/{id}"
+    };
+  }
+  // network volume list
+  rpc ListVolumes(ListVolumesRequest) returns (ListVolumesResponse) {
+    option (google.api.http) = {
+      get: "/v1/volumes"
+    };
+  }
+  // network create
+  rpc CreateNetwork(CreateNetworkRequest) returns (CreateNetworkResponse) {
+    option (google.api.http) = {
+      post: "/v1/networks"
+      body: "*"
+    };
+  }
+  // network delete
+  rpc DeleteNetwork(DeleteNetworkRequest) returns (DeleteNetworkResponse) {
+    option (google.api.http) = {
+      delete: "/v1/networks"
+    };
+  }
+  // network update state
+  rpc UpdateNetworkState(UpdateNetworkStateRequest) returns (UpdateNetworkStateResponse) {
+    option (google.api.http) = {
+      put: "/v1/networks/{id}/state"
+      body: "*"
+    };
+  }
+  // network get
+  rpc GetNetwork(GetNetworkRequest) returns (GetNetworkResponse) {
+    option (google.api.http) = {
+      get: "/v1/networks/{id}"
+    };
+  }
+  // network list
+  rpc ListNetworks(ListNetworksRequest) returns (ListNetworksResponse) {
+    option (google.api.http) = {
+      get: "/v1/networks"
+    };
+  }
+
+  // cluster info get
+  rpc GetClusterInfo(GetClusterInfoRequest) returns (GetClusterInfoResponse) {
+    option (google.api.http) = {
+      get: "/v1/cluster"
+    };
+  }
+  // endpoint agent list
+  rpc ListEndpointAgent(CommonListRequest) returns (ListEndpointAgentResponse) {
+    option (google.api.http) = {
+      get: "/v1/agent/endpoint"
+    };
+  }
+  // endpoint agent get
+  rpc GetEndpointAgent(CommonGetRequest) returns (GetEndpointAgentResponse) {
+    option (google.api.http) = {
+      get: "/v1/agent/endpoint/{id}"
+    };
+  }
+  // endpoint agent register
+  rpc RegisterEndpointAgent(RegisterEndpointAgentRequest) returns (RegisterEndpointAgentResponse) {
+    option (google.api.http) = {
+      post: "/v1/agent/endpoint"
+      body: "*"
+    };
+  }
+  // endpoint agent update
+  rpc UpdateEndpointAgent(UpdateEndpointAgentRequest) returns (UpdateEndpointAgentResponse) {
+    option (google.api.http) = {
+      put: "/v1/agent/endpoint"
+      body: "*"
+    };
+  }
+  // endpoint agent unregister
+  rpc UnRegisterEndpointAgent(UnRegisterEndpointAgentRequest) returns (UnRegisterEndpointAgentResponse) {
+    option (google.api.http) = {
+      delete: "/v1/agent/endpoint/{id}"
+    };
+  }
+  // job create
+  rpc CreateJob(CreateJobRequest) returns (CreateJobResponse) {
+    option (google.api.http) = {
+      post: "/v1/jobs"
+      body: "*"
+    };
+  }
+  // job get
+  rpc GetJob(GetJobRequest) returns (GetJobResponse) {
+    option (google.api.http) = {
+      get: "/v1/jobs/{id}"
+    };
+  }
+  // job list
+  rpc ListJobs(ListJobsRequest) returns (ListJobsResponse) {
+    option (google.api.http) = {
+      get: "/v1/jobs"
+    };
+  }
+  // job delete
+  rpc DeleteJob(DeleteJobRequest) returns (DeleteJobResponse) {
+    option (google.api.http) = {
+      delete: "/v1/jobs/{id}"
+    };
+  }
+  // job update state
+  rpc UpdateJobState(UpdateJobStateRequest) returns (UpdateJobStateResponse) {
+    option (google.api.http) = {
+      put: "/v1/jobs/{id}/state"
+      body: "*"
+    };
+  }
+  // jobs update state
+  rpc UpdateJobsState(UpdateJobsStateRequest) returns (UpdateJobsStateResponse) {
+    option (google.api.http) = {
+      put: "/v1/jobs/state"
+      body: "*"
+    };
+  }
+  // jobs inspect set
+  rpc InspectJobsSet(InspectJobsSetRequest) returns (InspectJobsSetResponse) {
+    option (google.api.http) = {
+      get: "/v1/inspect-jobs"
+    };
+  }
+
+  // daemon set create
+  rpc CreateDaemonSet(CreateDaemonSetRequest) returns (CreateDaemonSetResponse) {
+    option (google.api.http) = {
+      post: "/v1/daemonsets"
+      body: "*"
+    };
+  }
+  // daemon set get
+  rpc GetDaemonSet(GetDaemonSetRequest) returns (GetDaemonSetResponse) {
+    option (google.api.http) = {
+      get: "/v1/daemonsets/{id}"
+    };
+  }
+  // daemon set list
+  rpc ListDaemonSets(ListDaemonSetsRequest) returns (ListDaemonSetsResponse) {
+        option (google.api.http) = {
+          get: "/v1/daemonsets"
+        }; 
+  }
+  // daemon set delete
+  rpc DeleteDaemonSet(DeleteDaemonSetRequest) returns (DeleteDaemonSetResponse) {
+        option (google.api.http) = {
+          delete: "/v1/daemonsets/{id}"
+        };
+  }
+  // daemon set update
+  rpc UpdateDaemonSet(UpdateDaemonSetRequest) returns (UpdateDaemonSetResponse) {
+        option (google.api.http) = {
+          put: "/v1/daemonsets/{id}/update"
+          body: "*"
+        }; 
+  }
+  // daemon set inspect
+  rpc InspectDaemonSets(InspectDaemonSetsRequest) returns (InspectDaemonSetsResponse) {
+    option (google.api.http) = {
+      get: "/v1/daemonsets/config"
+    };
+  }
+  // daemon set update state
+  rpc UpdateDaemonSetsState(UpdateDaemonSetsStateRequest) returns (UpdateDaemonSetsStateResponse) {
+    option (google.api.http) = {
+      put: "/v1/daemonsets/state"
+      body: "*"
+    };
+  }
+//  // node keepalive
+//  rpc KeepAliveNode(KeepAliveNodeRequest) returns (KeepAliveNodeResponse) {
+//    option (google.api.http) = {
+//      get: "/v1/keepalive/node/{id}"
+//    };
+//  }
+//  // instance keepalive
+//  rpc KeepAliveInstance(KeepAliveInstanceRequest) returns (KeepAliveInstanceResponse) {
+//    option (google.api.http) = {
+//      get: "/v1/keepalive/instance/{id}"
+//    };
+//  }
+//  // endpoint agent keepalive
+//  rpc KeepAliveEndpointAgent(KeepAliveEndpointAgentRequest) returns (KeepAliveEndpointAgentResponse) {
+//    option (google.api.http) = {
+//      get: "/v1/keepalive/agent/endpoint/{id}"
+//    };
+//  }
+//  // volume agent keepalive
+//  rpc KeepAliveVolumeAgent(KeepAliveVolumeAgentRequest) returns (KeepAliveVolumeAgentResponse) {
+//    option (google.api.http) = {
+//      get: "/v1/keepalive/agent/volume/{id}"
+//    };
+//  }
+}
+
+// --- Inst
+enum SshMode {
+  DISABLE = 0;
+  PASSWORD = 1;
+  PUBLIC_KEY = 2;
+  ALL = 3;
+}
+
+message CommonListRequest {
+}
+
+message CommonGetRequest {
+  string id = 1 [(validate.rules).string.min_len = 1];
+}
+
+message ContainerSpec {
+  optional string              name           =  1;
+  string                       image          =  2  [(validate.rules).string.min_len = 1];
+  string                       registryAuth   =  3;
+  repeated string              env            =  4;
+  repeated string              cmd            =  5;
+  int64                        shmSize        =  6  [(validate.rules).int64.gt = 0];
+  string                       gpuProductName =  7  ;
+  int32                        cpuNum         =  8  [(validate.rules).int32.gte = 0];
+  int32                        gpuNum         =  9  ;
+  int64                        memorySize     =  10 [(validate.rules).int64.gte = 4194304];
+  int64                        rootfsSize     =  11 [(validate.rules).int64.gte = 1073741824];
+  repeated Mount               volumeMounts   =  12 ;
+  // [80/tcp, 9000/http]
+  repeated string              exposePorts    = 13;
+  SshMode                      sshMode        = 14;
+  string                       sshPassword    = 15;
+  repeated string              sshPublicKeys  = 16;
+  map<string, string>          label          = 17;
+  repeated string              entrypoint     = 18;
+}
+
+message Mount {
+  string volume     = 1 [(validate.rules).string.min_len = 1];
+  string mountPoint = 2 [(validate.rules).string.min_len = 1];
+  bool readonly = 3;
+}
+
+// local volume name uuid
+message InstVolume {
+  string type = 1 [(validate.rules).string = { in: [ "local", "network"] }];
+  int64  size = 2 ;
+  string id   = 3 ; // uuid; local storage generate & network volume use return id
+}
+
+message InstState {
+  // example：creating，pulling，running，stopping，exited，starting，resetting
+  string state          = 1 [(validate.rules).string.min_len = 1];
+  string error          = 2;
+  string errorMessage   = 3;
+  repeated int32 gpuIds = 4;
+  repeated int32 cpuIds = 5;
+  // singleNuma singleSocket singleDevice
+  string affinityMode   = 6 [(validate.rules).string = { in: [ "singleNuma", "singleSocket", "singleDevice"] }];
+  string rwLayerId     = 7;
+}
+
+message ExposePortState {
+  string port          = 1 [(validate.rules).string.min_len = 1];
+  string exposeAddress = 2 [(validate.rules).string.min_len = 1];
+  bool   online        = 3;
+}
+
+message WebTerminalState {
+  bool   running  = 1;
+  string address  = 2;
+  string username = 3;
+  string password = 4;
+}
+
+message SshState {
+  bool   running     = 1;
+  string sshCommand  = 2;
+  string sshPassword = 3;
+}
+
+message LogState {
+  bool   running            = 1;
+  string systemLogAddress   = 2;
+  string instanceLogAddress = 3;
+}
+
+message Apps {
+  WebTerminalState webTerminalState = 1;
+  SshState         sshState         = 2;
+  LogState         logState         = 3;
+}
+
+
+message InstNetwork {
+  string id = 1;
+  string ip = 2;
+}
+
+message Instance {
+  string                   id               = 1;
+  ContainerSpec            containers       = 2;
+  repeated InstVolume      volumes          = 3;
+  string                   nodeId           = 5;
+  repeated ExposePortState exposePortStates = 6;
+  InstState                state            = 7;
+  // all svc state and use case
+  Apps                     apps             = 8;
+  string                   kind             = 9;
+  InstNetwork              network         = 11;
+}
+
+message ReconcilerSetNotify {
+  string event = 1  [(validate.rules).string = { in: [ "add", "delete", "modify"] }];
+  string instanceId = 2;
+  string reconcilerset = 3;
+}
+
+// -- Inst END
+
+//message Affinity {
+//  int64 cpuPer = 1;
+//}
+
+// -- Node
+message NodeSpec {
+  string provider         =  1 [(validate.rules).string.min_len = 1];
+  string cpuProductName   =  2 [(validate.rules).string.min_len = 1];
+  int64  memoryReserved   =  3 [(validate.rules).int64.gte = 0];
+  string gpuProductName   =  4 ;
+  int64  gpuMemorySize    =  5 ;
+  string cudaVersion      =  6 ;
+  string rootfsType       =  7 [(validate.rules).string.min_len = 1];
+  string localStorageType =  8 [(validate.rules).string.min_len = 1];
+  map<string, string> affinity       =  9;
+  // cpu use by gpu per
+  int64               cpuPer         = 10;
+}
+
+message CpuSet {
+  repeated int32 cpuSet = 1 [(validate.rules).repeated.min_items = 1];
+}
+
+message GpuSet {
+  repeated int32 gpuSet = 1 [(validate.rules).repeated.min_items = 1];
+}
+
+message Affinity {
+  repeated int32 cpuSet = 1 [(validate.rules).repeated.min_items = 1];
+  repeated int32 gpuSet = 2 [(validate.rules).repeated.min_items = 1];
+  repeated CpuSet socketCpuSet = 3;
+  repeated GpuSet socketGpuSet = 4;
+  repeated CpuSet numaCpuSet = 5;
+  repeated GpuSet numaGpuSet = 6;
+}
+
+message NodeCapacity {
+  int32 cpuNum           = 1 [(validate.rules).int32.gte = 1];
+  int32 gpuNum           = 2 ;
+  int64 memorySize       = 3 [(validate.rules).int64.gte = 1073741824];
+  int64 rootfsSize       = 4 [(validate.rules).int64.gte = 10737418240];
+  int64 localStorageSize = 5 [(validate.rules).int64.gte = 10737418240];
+}
+
+message NodeAllocable {
+  int32 cpuNum            = 1;
+  int32 gpuNum            = 2;
+  int64 memorySize        = 3;
+  int64 rootfsSize        = 4;
+  int64 localStorageSize  = 5;
+  // index cpu id; value 1 use 0 available
+  repeated int32 cpuState = 6;
+  // index gpu id; value 1 use 0 available
+  repeated int32 gpuState = 7;
+}
+
+message NodeConfig {
+  string publicKey = 1;
+}
+
+message NodeState {
+  string state        = 1 [(validate.rules).string.min_len = 1];
+  string error        = 2;
+  string errorMessage = 3;
+
+  repeated string instIds = 4;
+  repeated CpuUsage cpuUsedBy = 5;
+  repeated GpuUsage gpuUsedBy = 6;
+  string gpuProductName = 7;
+  int64 gpuMemorySize = 8;
+  string cudaVersion = 9;
+  int64 memorySizeUsed = 10;
+  int64 memorySizeTotal = 11;
+  int64 rootfsSizeUsed = 12;
+  int64 rootfsSizeTotal = 13;
+  int64 localStorageSizeUsed = 14;
+  int64 localStorageSizeTotal = 15;
+  google.protobuf.Timestamp  updateAt = 16;
+  string ip = 17;
+}
+
+message CpuUsage {
+  repeated string instanceIds = 1;
+}
+
+message GpuUsage {
+  repeated string instanceIds = 1;
+}
+
+
+message Node {
+  string              id        = 1;
+  string              name      = 2;
+  map<string, string> label     = 3;
+  NodeSpec            spec      = 4;
+  NodeCapacity        capacity  = 5;
+  NodeAllocable       allocable = 6;
+  bool                schedulable = 7;
+  NodeState           state     = 8;
+  int64               version   = 9;
+  NodeConfig          config    = 10;
+}
+// --- Node End
+
+
+message InspectInstanceRequest {
+  string id         = 1;
+  // only version GT value return instance
+  int64  versionGT  = 2;
+}
+
+// --- cluster
+message Support {
+  bool networkVolume   = 1;
+  bool tcpPortMapping  = 2;
+  bool httpPortMapping = 3;
+  bool vpc             = 4;
+}
+
+message PublicVolume {
+  string id = 1;
+  string type = 2;
+  string localPath = 3;
+  string category = 4;
+  string mountPath = 5;
+  bool readonly = 6;
+  int64 size = 7;
+}
+
+message Cluster {
+  string  version                = 1;
+  string  name                   = 2;
+  string  region                 = 3;
+  string  type                   = 4 [(validate.rules).string = { in: [ "center ", "edge"] }];
+  Support support                = 5;
+  repeated PublicVolume publicVolumes = 6;
+}
+// ---- cluster End
+
+// --- cluster Volume
+message NetworkVolumeState {
+  string state        = 1 [(validate.rules).string.min_len = 1]; // creating  expanding ready
+  string error        = 2;
+  string errorMessage = 3;
+}
+
+message NetworkVolume {
+  string                    id       = 1;
+  int64                     size     = 2;
+  string                    type     = 3;
+  NetworkVolumeState        state    = 4;
+  map<string, string>       metadata = 5;
+  int64                     version  = 6;
+  string                    createAt = 7; //create time
+  string                    updateAt = 8; //update time
+}
+// --- cluster Volume End
+
+// ---- Network
+
+message NetworkState {
+  string state = 1 [(validate.rules).string.min_len = 1];
+  string error = 2;
+  string dockerNetworkID = 3;
+}
+
+message Null {}
+
+message Network {
+  string                    id   = 1;
+  string                    dockerNetworkID = 2;
+  string                    CIDR = 3;
+  NetworkState              state = 4;
+  // repeated string           allocated = 5;
+  //   instId, ip
+  map <string, string>      allocated = 5;
+  string                    createAt = 6;
+  string                    updateAt = 7;
+}
+
+// ---- Network end
+
+message CreateInstanceRequest {
+  // instance id
+  string                 id        = 1 [(validate.rules).string.min_len = 1];
+  // container inspect
+  ContainerSpec          container = 2;
+  // several mount volume
+  repeated InstVolume    volumes   = 3;
+  // best-effort or intensive. if use nodeId default best effort
+  string                 schedulePolicy = 4 ;
+  // select node Don't schedule
+  string                 nodeId = 5;
+  // instance network
+  string                 network = 6;
+  // cpu or gpu instance
+  string                 kind   = 7;
+  // labelSelector
+  map <string, string>   labelSelector = 8;
+}
+
+message VersionRequest {}
+
+message VersionResponse {
+  string version = 1;
+}
+
+message CreateInstanceResponse {
+  // created instance
+  Instance instance = 1;
+}
+
+message GetInstanceRequest {
+  // instance id
+  string id       = 1 [(validate.rules).string.min_len = 1];
+  // instance version, only version GT value return instance
+  int64 versionGT = 2 [(validate.rules).int64.gte = 0];
+}
+
+message GetInstanceResponse {
+  Instance instance = 1;
+}
+
+message InspectInstanceResponse {
+  // instance inspect
+  string instance = 1;
+}
+
+message ListInspectInstancesRequest {
+  // instance in node id
+  string nodeId = 1;
+}
+
+message ListInspectInstancesResponse {
+  // list instances inspect
+  string instances = 1;
+}
+
+message ListInstancesRequest {
+  // node id
+  string nodeId = 1;
+  // instance status
+  string state =  2;
+  // instance affinity mode
+  string affinityMode = 3;
+}
+
+message ListInstancesResponse {
+  // list instances
+  repeated Instance instances = 1;
+}
+
+message WatchReconcilerSetRequest {
+  // reconciler in node id
+  string nodeId = 1;
+}
+
+message WatchReconcilerSetResponse {
+  // reconciler
+  ReconcilerSetNotify reconcilerset = 1;
+}
+
+message StartInstanceRequest {
+  // instance id
+  string id = 1 [(validate.rules).string.min_len = 1];
+}
+message StartInstanceResponse {}
+message StopInstanceRequest {
+  // instance id
+  string id      = 1 [(validate.rules).string.min_len = 1];
+  // true  stop instance but save resource
+  // false stop instance and recycle resource
+  bool   reserve = 2;
+}
+message StopInstanceResponse {}
+message DeleteInstanceRequest {
+  // instance id
+  string id = 1 [(validate.rules).string.min_len = 1];
+}
+message DeleteInstanceResponse {}
+message FreezeInstanceRequest {
+  // instance id
+  string   id        = 1 [(validate.rules).string.min_len = 1];
+}
+message FreezeInstanceResponse {
+}
+
+message UnFreezeInstanceRequest {
+  // instance id
+  string   id        = 1 [(validate.rules).string.min_len = 1];
+}
+message UnFreezeInstanceResponse {}
+
+message ReScheduleInstanceRequest {
+  // instance id
+  string   id               = 1 [(validate.rules).string.min_len = 1];
+  // select a new node for instance
+  string   nodeId           = 2;
+  // gpu product name, e.g. NVIDIA RTX 4090
+  string   gpuProductName   = 3;
+  // cpu number
+  int32    cpuNum           = 4;
+  // gpu number
+  int32    gpuNum           = 5;
+  // memory size
+  int64    memorySize       = 6;
+  // rootfs size
+  int64    rootfsSize       = 7;
+  // select origin node or not
+  bool     selectOriginNode = 8;
+}
+
+message ReScheduleInstanceResponse {
+  // new node id
+  string    nodeId   = 1;
+  // origin node id
+  string    preNodeId   = 2;
+}
+
+message ScaleDownInstanceRequest{
+  // instance id
+  string   id       = 1 [(validate.rules).string.min_len = 1];
+  // instance node id
+  string   nodeId   = 2 ;
+}
+message ScaleDownInstanceResponse{}
+
+message MigrateInstanceRequest{
+  string id = 1 [(validate.rules).string.min_len = 1];
+}
+message MigrateInstanceResponse{}
+
+message StartInstanceWebTerminalRequest {
+  // instance id
+  string id = 1 [(validate.rules).string.min_len = 1];
+}
+message StartInstanceWebTerminalResponse {}
+message StopInstanceWebTerminalRequest {
+  // instance id
+  string id = 1 [(validate.rules).string.min_len = 1];
+}
+message StopInstanceWebTerminalResponse {}
+message SetInstanceSpecRequest {
+  string          id           = 1 [(validate.rules).string.min_len = 1];
+  string          image        = 2 [(validate.rules).string.min_len = 1];
+  string          registryAuth = 3 [(validate.rules).string.min_len = 1];
+  repeated string env          = 4;
+  repeated string cmd          = 5;
+}
+message SetInstanceSpecResponse {
+  Instance instance = 1;
+}
+
+message ResetInstanceRequest {
+  // instance id
+  string          id           = 1 [(validate.rules).string.min_len = 1];
+  // image used by user container
+  string          image        = 2 [(validate.rules).string.min_len = 1];
+  // sidecar container registryAuth
+  string          registryAuth = 3;
+  // instance ENV
+  repeated string env          = 4;
+  // instance CMD
+  repeated string cmd          = 5;
+  // whether to save rootfs data
+  bool            save         = 6;
+  // container entrypoint
+  repeated string entrypoint   = 7;
+  repeated InstVolume volumes  = 8;
+  repeated Mount volumeMounts  = 9;
+}
+
+message ResetInstanceResponse {
+  // reset instance
+  Instance instance = 1;
+}
+
+
+message UpdateInstanceStateRequest {
+  // instance id
+  string id = 1 [(validate.rules).string.min_len = 1];
+  // instance update state
+  string state = 2;
+}
+
+message UpdateInstanceStateResponse {
+  // instance update information
+  string instance = 1;
+}
+message SetInstanceLocalVolumeRequest {
+  // instance id
+  string id         = 1 [(validate.rules).string.min_len = 1];
+  // instance volume id
+  string volumeId   = 2 [(validate.rules).string.min_len = 1];
+  // volume size
+  int64  size       = 3 [(validate.rules).int64.gte = 1073741824];
+}
+message SetInstanceLocalVolumeResponse {}
+
+message SetInstanceExposePortsRequest {
+  // instance id
+  string          id            = 1 [(validate.rules).string.min_len = 1];
+  //  string          containerName = 2 [(validate.rules).string.min_len = 1];
+  // instance several exposed ports
+  repeated string exposePorts   = 2;
+}
+message SetInstanceExposePortsResponse {}
+
+message GetNodeRequest {
+  // node id
+  string id = 1 [(validate.rules).string.min_len = 1];
+}
+
+message GetNodeResponse {
+  // get node
+  Node node = 1;
+}
+
+message GetNodeReconcilerSetRequest {
+  // node id
+  string id = 1 [(validate.rules).string.min_len = 1];
+  // reconciler version, only version GT value return instance
+  int64  versionGT = 2;
+}
+
+message GetNodeReconcilerSetResponse {
+  // get reconciler
+  string reconcilersets = 1;
+}
+
+
+message UpdateNodeReconcilerSetStateRequest {
+  // node id
+  string id = 1;
+  // reconciler update status
+  string states = 2;
+}
+
+message UpdateNodeReconcilerSetStateResponse {
+  // reconciler current status
+  string states = 1;
+}
+
+message GetNodeDaemonSetRequest {
+  // node id
+  string id = 1 [(validate.rules).string.min_len = 1];
+}
+
+message GetNodeDaemonSetResponse {
+  // node daemonset
+  string daemonsets = 1;
+  // daemonset version, only version GT value return instance
+  int64  versionGT  = 2;
+}
+
+message UpdateNodeDaemonSetStateRequest {
+  // node id
+  string id = 1 [(validate.rules).string.min_len = 1];
+}
+
+message UpdateNodeDaemonSetStateResponse {
+  // daemonset current status
+  string states = 1;
+}
+
+message ListNodesRequest {
+  // node cpu num
+  optional int32  cpuNumGTE      = 1 [(validate.rules).int32.gte = 0];
+  // node gpu num
+  optional int32  gpuNumGTE      = 2 [(validate.rules).int32.gte = 0];
+  // node gpu product name
+  optional string gpuProductName = 3 [(validate.rules).string.min_len = 1];
+  // node status
+  optional string state = 4;
+}
+message ListNodesResponse {
+  // list nodes
+  repeated Node nodes = 1;
+}
+message CreateNodeRequest {
+  // node id
+  string       id       = 1 [(validate.rules).string.min_len = 1];
+  // node inspect
+  NodeSpec     spec     = 2;
+  // node capacity
+  NodeCapacity capacity = 3;
+  // node label
+  map<string, string> label  = 4;
+}
+message CreateNodeResponse {
+  // created node
+  Node node = 1;
+}
+message DeleteNodeRequest {
+  // node id
+  string id = 1 [(validate.rules).string.min_len = 1];
+}
+message DeleteNodeResponse {}
+
+message SetNodeLabelRequest {
+  // node id
+  string              id     = 1;
+  // set label
+  map<string, string> labels = 2;
+}
+
+message SetNodeLabelResponse {}
+message SetNodeSchedulableRequest {
+  // node id
+  string id          = 1 [(validate.rules).string.min_len = 1];
+  // node is schedulable or not
+  bool   schedulable = 2;
+}
+message SetNodeSchedulableResponse {}
+message SetNodeCapacityRequest {
+  // node id
+  string              id       = 1 [(validate.rules).string.min_len = 1];
+  // node new capacity
+  NodeCapacity        capacity = 2;
+  // node affinity
+  map<string, string> affinity = 3;
+}
+message SetNodeCapacityResponse {}
+message SelectNodeRequest {
+  // node gpu product name
+  string gpuProductName   = 1 [(validate.rules).string.min_len = 1];
+  // node gpu number
+  int32  gpuNum           = 2;
+  // node cpu number
+  int32  cpuNum           = 3;
+  // node memory size
+  int64  memorySize       = 4;
+  // node rootfs size
+  int64  rootfsSize       = 5;
+  // node local storage size
+  int64  localStorageSize = 6;
+  // node cuda version
+  optional string cudaVersion      = 7;
+  //string schedulePolicy = 8  [(validate.rules).string = { in: [ "bestEffort ", "intensive"] }];
+}
+
+message SelectNodeResponse {
+  // node max gpu number
+  int32    maxGpuNum         = 1;
+  // numa level affinity
+  repeated Node SingleNuma   = 2;
+  // socket level affinity
+  repeated Node SingleSocket = 3;
+  // device level affinity
+  repeated Node SingleDevice = 4;
+}
+
+message SelectNodeByGpusRequest {
+  // node gpu product name
+  repeated string gpuProductNames   = 1 [(validate.rules).repeated.min_items = 1];
+  // node gpu number
+  int32  gpuNum           = 2;
+  // node cpu number
+  int32  cpuNum           = 3;
+  // node memory size
+  int64  memorySize       = 4;
+  // node rootfs size
+  int64  rootfsSize       = 5;
+  // node local storage size
+  int64  localStorageSize = 6;
+  // node cuda version
+  optional string cudaVersion      = 7;
+}
+
+message NodesByGpu {
+  // gpu product name
+  string   gpuProductName    = 1;
+  // node max gpu number
+  int32    maxGpuNum         = 2;
+  // list numa level nodes
+  repeated Node SingleNuma   = 3;
+  // list socket level nodes
+  repeated Node SingleSocket = 4;
+  // list device level nodes
+  repeated Node SingleDevice = 5;
+}
+
+message SelectNodeByGpusResponse {
+  // list selected nodes by gpu
+  repeated NodesByGpu nodes = 1;
+}
+
+message SelectNodeByCpuRequest {
+  // node cpu number
+  int32  cpuNum           = 1;
+  // node memory size
+  int64  memorySize       = 2;
+  // node rootfs size
+  int64  rootfsSize       = 3;
+  // node local storage size
+  int64  localStorageSize = 4;
+}
+
+message SelectNodeByCpuResponse {
+  // list selected nodes by cpu
+  repeated Node nodes = 1;
+}
+
+message UpdateNodeStateRequest {
+  // node id
+  string     id   = 1 [(validate.rules).string.min_len = 1];
+  // node update status
+  NodeState state = 2;
+}
+
+message UpdateNodeStateResponse {}
+
+message GetForwardRequest {
+  // forward container id
+  string id = 1 [(validate.rules).string.min_len = 1];
+}
+message GetForwardResponse {
+  // get forward container
+  Forward forward = 1;
+}
+
+message Forward {
+  string                      id = 1;
+  repeated string endpointAgents = 2;
+}
+
+message ListForwardsRequest {}
+message ListForwardsResponse {
+  // list forward containers
+  repeated Forward forwards = 1;
+}
+message UpdateForwardRequest {
+  string id = 1  [(validate.rules).string.min_len = 1];
+  repeated string endpointAgents = 2;
+}
+message UpdateForwardResponse {}
+
+message Endpoint {
+  string id              = 1;
+  string port            = 2;
+  string forwardAgentId  = 3;
+  string endpointAgentId = 4;
+  string exposeAddress   = 5;
+  bool   online          = 6;
+  int64  version         = 7;
+  string role            = 8;
+  string resourceId      = 9;
+  string target          = 10;
+  string targetPort      = 11;
+  string protocol        = 12;
+  OwnerReference OwnerReference = 13;
+}
+
+message OwnerReference {
+  string kind              = 1;
+  string name              = 2;
+}
+
+message GetEndpointRequest {
+  // endpoint id
+  string id = 1  [(validate.rules).string.min_len = 1];
+}
+message GetEndpointResponse {
+  // get endpoint
+  Endpoint endpoint = 1;
+}
+message ListEndpointsRequest {
+  // forward agent id
+  optional string forwardAgentId  = 1;
+  // endpoint agent id
+  optional string endpointAgentId = 2;
+}
+message ListEndpointsResponse {
+  // list endpoints
+  repeated Endpoint endpoints = 1;
+}
+
+message CreateEndpointRequest {
+  // endpoint expose port
+  string port            = 1 [(validate.rules).string.min_len = 1];
+  // endpoint forward agent id
+  string forwardAgentId  = 2 [(validate.rules).string.min_len = 1];
+  // endpoint agent id
+  string endpointAgentId = 3 [(validate.rules).string.min_len = 1];
+}
+
+message CreateEndpointResponse {
+  // created endpoint
+  Endpoint endpoint = 1;
+}
+
+message GetEndpointConfigsRequest {
+  // endpoint agent id
+  string agent     = 1;
+  // endpoint version, only version GT value return instance
+  int64  versionGT = 2;
+}
+
+message GetEndpointConfigsResponse {
+  //  endpoint config
+  string configs = 2;
+}
+
+message UpdateEndpointStatesRequest {
+  // endpoint update status
+  string states = 1;
+}
+
+message UpdateEndpointStatesResponse {
+
+}
+message GenerateTokenRequest {
+  // token owner role, e.g. node, endpoint
+  string role = 1 [(validate.rules).string.min_len = 1];
+  // token owner id
+  string name = 2 [(validate.rules).string.min_len = 1];
+}
+message GenerateTokenResponse {
+  // generated token
+  string token = 1;
+}
+message RevokeTokenRequest {
+  // token owner role, e.g. node, endpoint
+  string role = 1 [(validate.rules).string.min_len = 1];
+  // token owner id
+  string name = 2 [(validate.rules).string.min_len = 1];
+}
+message RevokeTokenResponse {}
+message CreateVolumeRequest {
+  // network volume id
+  string id = 1 [(validate.rules).string.min_len = 1];
+  // network volume size
+  int64 size = 2  [(validate.rules).int64.gte = 1073741824];
+}
+
+message GetTokenRequest {
+  // token owner role, e.g. node, endpoint
+  string role = 1 [(validate.rules).string.min_len = 1];
+  // token owner id
+  string name = 2 [(validate.rules).string.min_len = 1];
+}
+message GetTokenResponse {
+  // get token
+  string token = 1;
+}
+
+message CreateVolumeResponse {
+  // created network volume
+  NetworkVolume volume = 1;
+}
+
+message DeleteVolumeRequest {
+  // network volume id
+  string id = 1 [(validate.rules).string.min_len = 1];
+}
+message DeleteVolumeResponse {}
+message SetVolumeRequest {
+  // network volume id
+  string id   = 1 [(validate.rules).string.min_len = 1]; // volume id
+  // network volume size
+  int64  size = 2 [(validate.rules).int64.gte = 1073741824]; // volume size
+}
+message SetVolumeResponse {
+  // set network volume
+  NetworkVolume volume = 1;
+}
+message UpdateVolumeStateRequest {
+  // network volume id
+  string              id             = 1 [(validate.rules).string.min_len = 1]; // volume id
+  // network volume size
+  int64               size           = 2 [(validate.rules).int64.gte = 1073741824]; // volume size
+  // network volume update status
+  NetworkVolumeState  state          = 3;
+  // network volume type
+  string              type           = 4;
+  // network volume metadata
+  map<string, string> metadata = 5;
+}
+message UpdateVolumeStateResponse {
+  // updated network volume
+  NetworkVolume volume = 1;
+}
+message GetVolumeRequest {
+  // network volume id
+  string id = 1 [(validate.rules).string.min_len = 1];
+}
+message GetVolumeResponse {
+  // get network volume
+  NetworkVolume volume = 1;
+}
+message ListVolumesRequest {}
+message ListVolumesResponse {
+  // list network volumes
+  repeated NetworkVolume volumes = 1;
+}
+
+message CreateNetworkRequest {
+  // vpc id
+  string id = 1 [(validate.rules).string.min_len = 1];
+}
+
+message CreateNetworkResponse {
+  // created vpc
+  Network network = 1;
+}
+
+message DeleteNetworkRequest {
+  // vpc id
+  string id = 1 [(validate.rules).string.min_len = 1];
+}
+message DeleteNetworkResponse {}
+
+message SetNetworkResponse {
+  Network Network = 1;
+}
+message UpdateNetworkStateRequest {
+  // vpc id
+  string              id             = 1 [(validate.rules).string.min_len = 1]; // Network id
+  // vpc status
+  string              state          = 2;
+  // vpc cidr
+  string              cidr           = 3;
+}
+message UpdateNetworkStateResponse {
+  // updated vpc
+  Network Network = 1;
+}
+message GetNetworkRequest {
+  // vpc id
+  string id = 1 [(validate.rules).string.min_len = 1];
+}
+message GetNetworkResponse {
+  // get vpc
+  Network Network = 1;
+}
+message ListNetworksRequest {}
+message ListNetworksResponse {
+  // list vpc
+  repeated Network networks = 1;
+}
+
+message GetClusterInfoRequest {}
+message GetClusterInfoResponse {
+  // get cluster
+  Cluster cluster = 1;
+}
+
+message EndpointAgent {
+  string              id              = 1;
+  string              internalAddress = 2;
+  repeated string     support         = 3;
+  map<string, string> extras          = 4;
+  bool                online          = 5;
+}
+
+message GetEndpointAgentRequest {
+
+}
+
+message GetEndpointAgentResponse {
+  // get endpoint agent
+  EndpointAgent agent = 1;
+}
+
+message ListEndpointAgentResponse {
+  // list endpoint agents
+  repeated EndpointAgent agents = 1;
+}
+
+message RegisterEndpointAgentRequest {
+  // endpoint agent id
+  string              id              = 1 [(validate.rules).string.min_len = 1];
+  // endpoint agent internal address
+  string              internalAddress = 2 [(validate.rules).string.min_len = 1];
+  // several support, e.g. tcp or http
+  repeated string     support         = 3 [(validate.rules).repeated.min_items = 1]; // tcp / http
+  // endpoint extra information
+  map<string, string> extras          = 4;
+}
+
+message RegisterEndpointAgentResponse {
+}
+
+message UpdateEndpointAgentRequest {
+  // endpoint agent id
+  string              id              = 1 [(validate.rules).string.min_len = 1];
+  // endpoint agent internal address
+  string              internalAddress = 2 [(validate.rules).string.min_len = 1];
+}
+
+message UpdateEndpointAgentResponse {}
+
+message UnRegisterEndpointAgentRequest {
+  // endpoint agent id
+  string id = 1 [(validate.rules).string.min_len = 1];
+}
+
+message UnRegisterEndpointAgentResponse {
+}
+
+//message KeepAliveNodeRequest {
+//  string id = 1 [(validate.rules).string.min_len = 1];
+//}
+//
+//message KeepAliveNodeResponse {}
+//
+//message KeepAliveInstanceRequest {
+//  string id = 1 [(validate.rules).string.min_len = 1];
+//}
+//
+//message KeepAliveInstanceResponse {}
+//
+//message KeepAliveEndpointAgentRequest {
+//  string id = 1 [(validate.rules).string.min_len = 1];
+//}
+//
+//message KeepAliveEndpointAgentResponse {}
+//
+//message KeepAliveVolumeAgentRequest {
+//  string id = 1 [(validate.rules).string.min_len = 1];
+//}
+//
+//message KeepAliveVolumeAgentResponse {}
+
+// -----
+// job spec
+message JobSpec {
+  string                       image          =  1;
+  string                       registryAuth   =  2;
+  repeated string              env            =  3;
+  repeated string              cmd            =  4;
+  int64                        shmSize        =  5;
+  string                       gpuProductName =  6;
+  int32                        cpuNum         =  7;
+  int32                        gpuNum         =  8;
+  int64                        memorySize     =  9;
+  int64                        rootfsSize     =  10;
+  repeated Mount               volumeMounts   =  11 ;
+}
+
+message Job {
+  string              id             = 1;
+  JobSpec             spec           = 2;
+  repeated InstVolume volumes        = 3;
+  int32               maxRetryTimes  = 4;
+  // ---
+  // SaveImageAndPush
+  // SyncData
+  // SyncInstance
+  // Custom
+  string           type           = 5;
+  JobState         state          = 6;
+  // seconds
+  int64            timeout        = 7;
+  string           log            = 8;
+}
+
+message JobState {
+  string state          = 1;
+  string error          = 2;
+  string errorMessage   = 3;
+}
+
+//create job
+message CreateJobRequest {
+  // job id
+  string               id             = 1;
+  // job inspect
+  JobSpec              spec           = 2;
+  // several volumes
+  repeated  InstVolume volumes        = 3;
+  // job max retry times
+  int32                maxRetryTimes  = 4;
+  // ---
+  // SaveImageAndPush
+  // SyncData
+  // SyncInstance ?
+  // Custom
+  string              type           = 5;
+  // seconds
+  int64            timeout           = 6;
+}
+
+message CreateJobResponse {
+  // created job
+  Job job = 1;
+}
+
+message ListJobsRequest {
+  // instance id
+  string instanceId =  1;
+  // job status
+  string     state  =  2;
+  // SaveImageAndPush
+  // SyncData
+  // SyncInstance ?
+  // Custom
+  string     type   =  3;
+}
+
+message ListJobsResponse {
+  // list jobs
+  repeated Job jobs = 1;
+}
+
+message DeleteJobRequest{
+  // job id
+  string id = 1;
+}
+message DeleteJobResponse{}
+message GetJobRequest {
+  // job id
+  string id = 1;
+}
+message GetJobResponse {
+  // get job
+  Job job = 1;
+}
+message InspectJobsSetRequest {
+  // job in node id
+  string nodeId         = 1;
+}
+message InspectJobsSetResponse {
+  // jobs inspect
+  string jobs = 1;
+}
+
+message UpdateJobsStateRequest{
+  // jobs in node id
+  string nodeId = 1;
+  // jobs update status
+  string states = 2;
+}
+message UpdateJobsStateResponse{}
+
+ 
+message UpdateJobStateRequest{
+  // job id
+  string id = 1;
+  // job update status
+  string state = 2;
+}
+message UpdateJobStateResponse{}
+
+
+message CreateDaemonSetRequest {
+  // daemonset id
+  string           id             = 1;
+  // daemonset inpect
+  DaemonSetSpec    spec           = 2;
+  // set daemonset labels
+  repeated string  labels         = 3;
+}
+
+message CreateDaemonSetResponse{
+  // created daemonset
+  DaemonSet daemonset    = 1;
+}
+
+message GetDaemonSetRequest{
+  // daemonset id
+  string id       = 1;
+}
+message GetDaemonSetResponse{
+  // get daemonset
+  DaemonSet daemonset    = 1;
+}
+
+message ListDaemonSetsRequest{
+  // daemonset in node id
+  string nodeId             = 1;
+  // daemonset labels
+  repeated string labels    = 2;
+}
+message ListDaemonSetsResponse{
+  // list daemonsets
+  repeated DaemonSet daemonsets = 1;
+}
+
+message DeleteDaemonSetRequest{
+  // daemonset id
+  string id = 1;
+}
+message DeleteDaemonSetResponse{}
+
+message UpdateDaemonSetRequest{
+  string id             = 1;
+  repeated string labels    = 2;
+  string image              = 3;
+}
+message UpdateDaemonSetResponse{
+  DaemonSet daemonset    = 1;
+}
+
+
+message DaemonSet {
+  string                   id             = 1;
+  DaemonSetSpec            spec           = 2;
+  repeated string          labels         = 3;
+  repeated DaemonSetState  status         = 4;
+  //repeated string          nodeIds        = 5;
+  //repeated InstVolume      volumes        = 6;
+  //InstNetwork              network        = 7;
+}
+message DaemonSetSpec {
+  optional string              name           =  1;
+  string                       image          =  2;
+  string                       registryAuth   =  3;
+  repeated string              env            =  4;
+  repeated string              cmd            =  5;
+  int64                        shmSize        =  6;
+  string                       gpuProductName =  7;
+  int32                        cpuNum         =  8;
+  int32                        gpuNum         =  9;
+  int64                        memorySize     =  10;
+  int64                        rootfsSize     =  11;
+  repeated Mount               volumeMounts   =  12;
+  repeated string              exposePorts    =  13;
+  map<string, string>          label          =  14;
+  bool                         privileged     =  15;
+  string                       networkMode    =  16;
+}
+
+message DaemonSetState {
+  string nodeId         = 1;
+  string state          = 2;
+  string error          = 3;
+  string errorMessage   = 4;
+}
+
+message InspectDaemonSetsRequest{
+  // node id
+  string nodeId         = 1;
+}
+message InspectDaemonSetsResponse{
+  // inspect daemonsets
+  string daemonsets = 1;
+}
+
+message UpdateDaemonSetsStateRequest{
+  // daemonset in node id
+  string nodeId = 1;
+  // daemonset update status
+  string states = 2;
+}
+message UpdateDaemonSetsStateResponse{}

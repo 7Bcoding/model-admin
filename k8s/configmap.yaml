@@ -1,0 +1,91 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: llm-ops-config
+  namespace: llm-ops
+data:
+  config.yaml: |
+    aes_key: a7c234ae72f64405
+    mysql:
+      host: 10.1.162.13
+      port: 3306
+      user: root
+      password: 9phWWFcXLO5inuxtIPh8Qmdxw7Y83PV55Fv3PF3fBw0=
+      database: llm_ops
+
+    server:
+      port: 8080
+
+    kubernetes:
+      config_path: /app/kubeconfig
+      config_path_v2: /app/kubeconfig-v2
+
+    novita:
+      api_url: https://api.novita.ai
+      api_key: 8UQy4NeinOI6wv5uMKFFaZyM56xvz7cGvh+9DU/lJF+gXI0uFTIfQ46MiovVo1s5
+    
+    ppio:
+      api_url: https://api.ppinfra.com
+      api_key: lmdcra5vqsItl9MeB9szZAc6pLHel00ACwrqdU2P00NvjkcDwRrXg6UET3dMJq3+
+
+    tracker:
+      base_url: https://tracker-server.pai-net.work
+      token: lqFyKBsaG8Q+woIRSxp0Ew==
+    
+    ppio_fusion:
+      url: https://fusion-admin.paigod.work
+      token: 0ADQvhYjCCbW8TZn8DiD6AcvcykSfHP8KLT3HsqNh50= 
+
+    novita_fusion:
+      url: https://fusion-admin.pplabs.tech
+      token: 0ADQvhYjCCbW8TZn8DiD6AcvcykSfHP8KLT3HsqNh50= 
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: llm-ops-kubeconfig
+  namespace: llm-ops
+data:
+  kubeconfig: |
+    apiVersion: v1
+    kind: Config
+    clusters:
+    - name: arn:aws:eks:us-west-2:183593234327:cluster/prod-serverless
+      cluster:
+        certificate-authority-data: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSURCVENDQWUyZ0F3SUJBZ0lJWEV6UWI1NHVEQjB3RFFZSktvWklodmNOQVFFTEJRQXdGVEVUTUJFR0ExVUUKQXhNS2EzVmlaWEp1WlhSbGN6QWVGdzB5TkRBNU1Ea3dOekU1TlRGYUZ3MHpOREE1TURjd056STBOVEZhTUJVeApFekFSQmdOVkJBTVRDbXQxWW1WeWJtVjBaWE13Z2dFaU1BMEdDU3FHU0liM0RRRUJBUVVBQTRJQkR3QXdnZ0VLCkFvSUJBUURRekRHRlBmSUxhMTJTR2NTSzdjYVlsT2NhUUk2N3ozaUJlWkNaZTRwK2IrVDc0ZW1qTW02SjV2a2kKL21nb3BocUxXYmNURWoyTC9LNGMxdXdJUm0zUHo3Vmk2UmMyYS94VVJzQ0p0d0xEaGhMR0IvY0lEZXRpOU5xcApIVi9landPQ0NKeVYyMWVpMzdQeXEvQ0tYejRQS2NtS0xEeWsrV2Ywcy9ZOERld2Z0K0Ztenp2UnRBckZGakl0CmlocUo3SCt2SVRPdGVWayt3QTFaMW5BV3RXOW9XMDRyRDVocXdMdDZCakZQdnZvNmgvbXlhWE95YjFhODlhTVEKZ0ozZEQzRnYvMDNmNzZDaDEwYkNpYUEvT1hqSHMway9sKzRQdFN0alZ0bnBVaWZkLy9TUnkrcERvRGordVFUMwpjZWxWVUFRbldDR29NTnJQcExBOWwyQ1FHNFBEQWdNQkFBR2pXVEJYTUE0R0ExVWREd0VCL3dRRUF3SUNwREFQCkJnTlZIUk1CQWY4RUJUQURBUUgvTUIwR0ExVWREZ1FXQkJRRjNjOHQreG16N25OZ1d4aUx5R09xay9PTDh6QVYKQmdOVkhSRUVEakFNZ2dwcmRXSmxjbTVsZEdWek1BMEdDU3FHU0liM0RRRUJDd1VBQTRJQkFRQjdYMnQyMkZkZgpnU3d1L0dyQ1RXZ1J2YUpqSE9oazQ0QWd1aDFacGNOQmxLNFVPWW9yaG5XQStld0VNUTM1MG4yU25HcWRFZm4yCjUzQUQrMG5zRkk4S0dQVFg1d0NZTU80ODRHcGRsL1VTZjZYdnZEZEMrT2ZzMitaYUFiSFRVSVcwQ3owQkd5TGYKQ09Qc2U4dTFkQ21aZk9rNzNkdGsxV2haVXBJTzVNbStBNXNFYlErN2lxdlYyQ0RNaFNQNFFCaE9JbjJCR2RQbwpybDZQdlhnWVdWWEV0aWVsZlBRTHd0cnVlM3RzZDRXT044Mjl6UFlzLzkxRG5nY0dIU1ZzbFg3Q3FMdkdaT2oxCm8vakt0OXlmeVFYYlltZEZVdWpVU1FmZVlCMXZ0TXF5LzNRNkEwVm94R3VIaHpjTzNmTnRmcGRaVEhtTTBFOTYKK0dycmpvNkVobUxuCi0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0K
+        server: https://B976ECA065EF1E7F0571855134556C31.gr7.us-west-2.eks.amazonaws.com
+    contexts:
+    - name: nitor-cr-sa-context
+      context:
+        cluster: arn:aws:eks:us-west-2:183593234327:cluster/prod-serverless
+        user: nitor-cr-sa-admin
+    current-context: nitor-cr-sa-context
+    users:
+    - name: nitor-cr-sa-admin
+      user:
+        token: eyJhbGciOiJSUzI1NiIsImtpZCI6InI3blI0WTZodzVvX2dmLWVNN0k3VzJIM0ZVOTVGb2NwRHo2VDB0ZTI5bWMifQ.eyJpc3MiOiJrdWJlcm5ldGVzL3NlcnZpY2VhY2NvdW50Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9uYW1lc3BhY2UiOiJzZXJ2ZXJsZXNzIiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9zZWNyZXQubmFtZSI6Im5pdG9yLWNyLXNhLWFkbWluLXRva2VuIiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9zZXJ2aWNlLWFjY291bnQubmFtZSI6Im5pdG9yLWNyLXNhLWFkbWluIiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9zZXJ2aWNlLWFjY291bnQudWlkIjoiODg3Mjg5YTctYzc5OC00NzYxLTk4NDMtODc0Zjg3NGE4ZGZjIiwic3ViIjoic3lzdGVtOnNlcnZpY2VhY2NvdW50OnNlcnZlcmxlc3M6bml0b3ItY3Itc2EtYWRtaW4ifQ.REBR039lf4F4Ch1EY8ymi0RiAQAxOOx255H24eii75mlJGrvlcnssgK97RXjTzhVSJUz0ZjhiTtJs7Aotz9pO2JK4RXU9Tfm9Qj8gytO-M3ZN8qHv9PSTGeew-br7MC_2tDdt7Vctk7erDdmsWjkZSocnigogsMZ58591LBRRrUMF3PULh7ilYW1NQoSz3tTY-tL14ij6J2NY6Fdcw2YZ3LC8BUu0j9AETRTIxMIdfc7v312HynTzJE9yq1sjX_SMOJv49rHovxR_XpVgO5gnN2qsEgf2Jf5kQP-309jvzYRPB7SeHcWoEOJks3QJ6wAF4ZlsERLcx20snG6iHxFgA
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: llm-ops-kubeconfig-v2
+  namespace: llm-ops
+data:
+  kubeconfig: |
+    apiVersion: v1
+    kind: Config
+    clusters:
+    - name: arn:aws:eks:us-west-2:183593234327:cluster/prod-nebula-serverless
+      cluster:
+        certificate-authority-data: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSURCVENDQWUyZ0F3SUJBZ0lJSVJUVERRMHMvcHN3RFFZSktvWklodmNOQVFFTEJRQXdGVEVUTUJFR0ExVUUKQXhNS2EzVmlaWEp1WlhSbGN6QWVGdzB5TlRBek1qRXdOak0yTlRSYUZ3MHpOVEF6TVRrd05qUXhOVFJhTUJVeApFekFSQmdOVkJBTVRDbXQxWW1WeWJtVjBaWE13Z2dFaU1BMEdDU3FHU0liM0RRRUJBUVVBQTRJQkR3QXdnZ0VLCkFvSUJBUURqQ09ydTJ6dTZNdTBnd054ZEdVd0x5Sy9jV1hjYXJHbzlQYTJqZHJ6cXRJWVFwVHltU1RuYi93ZVIKajN0VEg2VnppdDh6MElNRWVwbXUwa3g5ZE8wWU5nTzBxd0c0WGFHM0JSZW5CenFlTDVSQiszZmt1ZFUyVU40RwpBZXZWVDNzK2FyYzhOUlJYU09WU0h3a0tNL0JmQ0dHTVA2R0ZNeU9id0Y4Q0h5N3k2cXRmdDM5VUkrU05DSHJjCkFaMWNLZUlCRTRhTDBYRE9CSjRxc0N0aVF6S3ZJL1ZKbjQrRmVFQm1rNldkK2dyMW92eEhmeWxxcElLN3VqS0QKNU9WLzNiVzlidjJrR20wT28xdC9hd2RWV1NWUFhoaXdRWDZKMjFoL0pNRVBsTkd1QklLUG0wZEN0b1oxZ2xwZgorVmx6bHVSR2oxNVpMQkdOMFBaTVlDREpHN01IQWdNQkFBR2pXVEJYTUE0R0ExVWREd0VCL3dRRUF3SUNwREFQCkJnTlZIUk1CQWY4RUJUQURBUUgvTUIwR0ExVWREZ1FXQkJTdjZ4d2llQ203SUpRczlzRzFzUFNqVSswZHJ6QVYKQmdOVkhSRUVEakFNZ2dwcmRXSmxjbTVsZEdWek1BMEdDU3FHU0liM0RRRUJDd1VBQTRJQkFRQVZPa0JhQkh0WApwUDBzUnVRc3I1UnFyYWZCaVN4bmw5Q1pucXNYRzRUeVc3dG9Xbnh3cG9FZVNmVk0yOEFmT3I0N3dENEI5Qll2CjlMZWIzNU15eDVtaWd6NlZXRDB6NlZSdkpxSWNNM2Q0ckNyZ0M2YVNYVW1DZFlodk1pVlhiYUZOUEdlSHNGTGsKTXZvRzZ3K05YNnlzTUEzZ09Ec3R5NXB2Y2NmWXdMcnVOaFdRUHJYVmE1d2NNNkxYN090cUdNcDYwV1VhN3JtYQpMUy90Unk0WU1FeUtibVlMMXpscm4wcjIvcTRVLzVkeGdJZG00QXU4ejZ1RGlsbFl3QTJzZjNwRno3MzhYbGVMClg3N1FFcjB0UHMxOVJxSkZIZkd0RE1rcnEwNkZBUEJkNHVQNWFYNU03RVhoMzNyb0JIMjhoTDk4MlNzV1pHM3kKQi9KRTZCSWE0cGtYCi0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0K
+        server: https://91A43DF3A28B935D88EFA1AF0A619806.gr7.us-west-2.eks.amazonaws.com
+    contexts:
+    - name: nebula-cr-sa-context
+      context:
+        cluster: arn:aws:eks:us-west-2:183593234327:cluster/prod-nebula-serverless
+        user: nebula-cr-sa-admin
+    current-context: nebula-cr-sa-context
+    users:
+    - name: nebula-cr-sa-admin
+      user:
+        token: eyJhbGciOiJSUzI1NiIsImtpZCI6IldRdEtKeUg2V3RnSjMxUHIwU1dKZWxINTgzZDdJX2RWTkg4QmNRMXFsRXMifQ.eyJpc3MiOiJrdWJlcm5ldGVzL3NlcnZpY2VhY2NvdW50Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9uYW1lc3BhY2UiOiJuZWJ1bGEiLCJrdWJlcm5ldGVzLmlvL3NlcnZpY2VhY2NvdW50L3NlY3JldC5uYW1lIjoibmVidWxhLWNyLXNhLWFkbWluLXRva2VuIiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9zZXJ2aWNlLWFjY291bnQubmFtZSI6Im5lYnVsYS1jci1zYS1hZG1pbiIsImt1YmVybmV0ZXMuaW8vc2VydmljZWFjY291bnQvc2VydmljZS1hY2NvdW50LnVpZCI6IjM2M2U1YjdmLTJiMTQtNGQ1OS04YTZiLTkxM2FjMzdkYmM5MyIsInN1YiI6InN5c3RlbTpzZXJ2aWNlYWNjb3VudDpuZWJ1bGE6bmVidWxhLWNyLXNhLWFkbWluIn0.cGiS6uKHbTnDbkrAwxTdrqmqAEDRYG9Br8I3qiCZbPwqB2fhx6XeT6MP7Akr5sDhvWJBAFxkb3gWHyLyd5mT15IwEbIt0yzaZ3IWb42qaEX0Pve2b3JmOLwKOUbLrLIksNb5vykmc10WPzIeE57RIDXwRcVNqVzNTHB1etyGrNbHCebadSlkimOZPS29S0e54SgOAZKh9yeMwnNj5rTb6PhVU2dK4hnER1Ocl3ig0VbE2Jde9ckfnUnWNfV1m9f_zCSbLEl6XZ3PgUvRyQ1-plheErZMsV34Pg52F1ZHFywkeqpYjQPovl55GCR1G8Y4nzG4y_9KGh_Vshgu2sdvUw
