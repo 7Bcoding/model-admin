@@ -46,7 +46,7 @@ export const defaultEnv = {
   VLLM_ENGINE_ITERATION_TIMEOUT_S: '240',
   LOG_UPLOAD_ENDPOINT: 'aws',
   LOG_UPLOAD_LOCATION: '/var/log/supervisor/',
-  HF_TOKEN: 'xxxxx'
+  HF_TOKEN: ''
 }
 
 // 获取GPU Provider名称

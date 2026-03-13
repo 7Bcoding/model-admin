@@ -101,7 +101,7 @@ func (s *TrackerService) WarmupModels(models []ModelRequest, hfToken string, _ [
 	}
 
 	if hfToken == "" {
-		hfToken = "xxxx"
+		hfToken = ""
 	}
 	// 如果hfToken不为空，则设置HFToken
 	for i := range reqBody.Models {
