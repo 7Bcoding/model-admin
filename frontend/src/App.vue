@@ -13,14 +13,14 @@
                 class="nav-link" 
                 to="/models"
                 :class="{ active: isModelsActive }"
-              >模型管理(NOVITA)</router-link>
+              >模型管理(alpha)</router-link>
             </li>
             <li class="nav-item">
               <router-link 
                 class="nav-link" 
-                to="/ppio-models"
-                :class="{ active: isPPIOModelsActive }"
-              >模型管理(PPIO)</router-link>
+                to="/beta-models"
+                :class="{ active: isbetaModelsActive }"
+              >模型管理(beta)</router-link>
             </li>
             <li class="nav-item" v-if="isAdmin || isOps">
               <router-link 
@@ -156,12 +156,12 @@ const isModelsActive = computed(() => {
   return false
 })
 
-// 判断是否在 PPIO 模型管理页面
-const isPPIOModelsActive = computed(() => {
-  // 如果是直接访问 PPIO 模型管理页面
-  if (route.path === '/ppio-models') return true
-  // 如果是在 endpoint 详情页面，且 platform 参数为 ppio
-  if (route.name === 'EndpointManager' && route.query.platform === 'ppio') return true
+// 判断是否在 beta 模型管理页面
+const isbetaModelsActive = computed(() => {
+  // 如果是直接访问 beta 模型管理页面
+  if (route.path === '/beta-models') return true
+  // 如果是在 endpoint 详情页面，且 platform 参数为 beta
+  if (route.name === 'EndpointManager' && route.query.platform === 'beta') return true
   return false
 })
 

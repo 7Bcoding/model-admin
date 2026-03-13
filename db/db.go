@@ -49,7 +49,7 @@ func InitDB() error {
 			Role:        string(models.RoleAdmin),
 		}
 
-		if err := adminUser.SetPassword("Ppio2024"); err != nil {
+		if err := adminUser.SetPassword("beta2024"); err != nil {
 			return fmt.Errorf("error setting admin password: %v", err)
 		}
 

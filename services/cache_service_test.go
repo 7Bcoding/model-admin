@@ -49,8 +49,8 @@ func TestGenerateKeyFromURL(t *testing.T) {
 	cache := NewCacheService(5 * time.Minute)
 	
 	// 测试URL key生成
-	url1 := "/api/models?platform=novita"
-	url2 := "/api/models?platform=ppio"
+	url1 := "/api/models?platform=alpha"
+	url2 := "/api/models?platform=beta"
 	
 	key1 := cache.GenerateKeyFromURL(url1)
 	key2 := cache.GenerateKeyFromURL(url2)

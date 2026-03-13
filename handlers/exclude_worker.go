@@ -6,7 +6,7 @@ import (
 	"net/http"
 )
 
-const excludeWorkerBaseURL = "https://metric.novita.dev/exclude-worker"
+const excludeWorkerBaseURL = "https://metric.alpha.dev/exclude-worker"
 
 // ListExcludeWorkers 获取断流worker列表
 func ListExcludeWorkers(w http.ResponseWriter, r *http.Request) {

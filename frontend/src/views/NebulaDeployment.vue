@@ -217,7 +217,7 @@
                 v-for="model in getDeploymentModels(scope.row.metadata?.name)"
                 :key="model.name + '_' + model.source"
                 size="small"
-                :type="isPPIOModel(model) ? 'warning' : 'success'"
+                :type="isbetaModel(model) ? 'warning' : 'success'"
                 effect="plain"
                 class="model-tag"
                 @click="openModelDetail(model)"
@@ -429,7 +429,7 @@ const router = useRouter()
 
 // 模型数据
 const models = ref([])
-const ppioModels = ref([])
+const betaModels = ref([])
 const deploymentToModels = ref(new Map())
 
 // 列配置
@@ -650,9 +650,9 @@ const fetchModelsData = async () => {
     const modelsResponse = await axios.get('/models')
     models.value = modelsResponse.data?.data?.data || []
 
-    // 获取 PPIO 模型列表
-    const ppioModelsResponse = await axios.get('/models', { params: { platform: 'ppio' } })
-    ppioModels.value = ppioModelsResponse.data?.data?.data || []
+    // 获取 beta 模型列表
+    const betaModelsResponse = await axios.get('/models', { params: { platform: 'beta' } })
+    betaModels.value = betaModelsResponse.data?.data?.data || []
 
     // 建立 deployment 到模型的映射
     buildDeploymentToModelsMapping()
@@ -664,8 +664,8 @@ const fetchModelsData = async () => {
 // 从 2.0 endpoint URL 中提取 deployment 名称
 const extractDeploymentFromURL = (url) => {
   if (!url) return ''
-  // 2.0 format: https://{deployment}.us-01.sls2.novita.ai...
-  const match = url.match(/https:\/\/([^.]+)\.us-01\.sls2\.novita\.ai/)
+  // 2.0 format: https://{deployment}.us-01.sls2.alpha.ai...
+  const match = url.match(/https:\/\/([^.]+)\.us-01\.sls2\.alpha\.ai/)
   return match ? match[1] : ''
 }
 
@@ -677,7 +677,7 @@ const buildDeploymentToModelsMapping = () => {
   models.value.forEach(model => {
     if (model.endpoints) {
       model.endpoints.forEach(endpoint => {
-        if (endpoint.url && endpoint.url.includes('sls2.novita.ai')) {
+        if (endpoint.url && endpoint.url.includes('sls2.alpha.ai')) {
           const deploymentName = extractDeploymentFromURL(endpoint.url)
           if (deploymentName) {
             if (!deploymentToModelsMap.has(deploymentName)) {
@@ -693,19 +693,19 @@ const buildDeploymentToModelsMapping = () => {
     }
   })
 
-  // 处理 PPIO 模型
-  ppioModels.value.forEach(model => {
+  // 处理 beta 模型
+  betaModels.value.forEach(model => {
     if (model.endpoints) {
       model.endpoints.forEach(endpoint => {
-        if (endpoint.url && endpoint.url.includes('sls2.novita.ai')) {
+        if (endpoint.url && endpoint.url.includes('sls2.alpha.ai')) {
           const deploymentName = extractDeploymentFromURL(endpoint.url)
           if (deploymentName) {
             if (!deploymentToModelsMap.has(deploymentName)) {
               deploymentToModelsMap.set(deploymentName, new Map())
             }
-            deploymentToModelsMap.get(deploymentName).set(model.model_name + '_ppio', {
+            deploymentToModelsMap.get(deploymentName).set(model.model_name + '_beta', {
               name: model.model_name,
-              source: 'ppio'
+              source: 'beta'
             })
           }
         }
@@ -722,14 +722,14 @@ const getDeploymentModels = (deploymentName) => {
   return modelsMap ? Array.from(modelsMap.values()) : []
 }
 
-// 判断是否是 PPIO 模型
-const isPPIOModel = (model) => {
-  return model.source === 'ppio'
+// 判断是否是 beta 模型
+const isbetaModel = (model) => {
+  return model.source === 'beta'
 }
 
 // 打开模型详情
 const openModelDetail = (model) => {
-  const platform = model.source === 'ppio' ? 'ppio' : ''
+  const platform = model.source === 'beta' ? 'beta' : ''
   router.push({
     name: 'EndpointManager',
     params: { modelName: model.name },

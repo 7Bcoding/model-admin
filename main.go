@@ -90,9 +90,9 @@ func main() {
 	log.Printf("Kubernetes service v2 initialized")
 
 	// 初始化模型服务
-	novitaModelService := services.NewModelService()
-	ppioModelService := services.NewPPIOModelService()
-	handlers.InitModelService(novitaModelService, ppioModelService)
+	AlphaModelService := services.NewModelService()
+	BetaModelService := services.NewBetaModelService()
+	handlers.InitModelService(AlphaModelService, BetaModelService)
 
 	// API 路由
 	api := r.PathPrefix("/api/v1").Subrouter()

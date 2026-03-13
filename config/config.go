@@ -81,28 +81,28 @@ type Configuration struct {
 		ConfigPathV2 string `yaml:"config_path_v2"`
 	} `yaml:"kubernetes"`
 
-	Novita struct {
+	alpha struct {
 		ApiURL string `yaml:"api_url"`
 		ApiKey string `yaml:"api_key"`
-	} `yaml:"novita"`
+	} `yaml:"alpha"`
 
-	PPIO struct {
+	beta struct {
 		ApiURL string `yaml:"api_url"`
 		ApiKey string `yaml:"api_key"`
-	} `yaml:"ppio"`
+	} `yaml:"beta"`
 
 	Tracker TrackerConfig `yaml:"tracker"`
 
 	// Fusion 代理配置
-	PPIOFusion struct {
+	betaFusion struct {
 		URL   string `yaml:"url"`
 		Token string `yaml:"token"`
-	} `yaml:"ppio_fusion"`
+	} `yaml:"beta_fusion"`
 
-	NovitaFusion struct {
+	AlphaFusion struct {
 		URL   string `yaml:"url"`
 		Token string `yaml:"token"`
-	} `yaml:"novita_fusion"`
+	} `yaml:"alpha_fusion"`
 }
 
 type TrackerConfig struct {
@@ -126,33 +126,33 @@ var NexusClusters = map[string]*NexusCluster{
 		Index:      3,
 		IndexAlias: 7,
 		ID:         "us-ca-02",
-		GrpcURL:    "grpc-nexus.us-ca-2.gpu-instance.novita.ai:443",
+		GrpcURL:    "grpc-nexus.us-ca-2.gpu-instance.alpha.ai:443",
 		Token:      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYWRtaW4iLCJuYW1lIjoiamluZ3h1YW4ifQ.Y8wRDeNDI7hPMaH4BCMtUNkhAz7j9eY0tOURLTVQR9w",
 	},
 	"us-ca-03": &NexusCluster{
 		Index:      5,
 		IndexAlias: 8,
 		ID:         "us-ca-03",
-		GrpcURL:    "grpc-nexus.us-ca-3.gpu-instance.novita.ai:443",
+		GrpcURL:    "grpc-nexus.us-ca-3.gpu-instance.alpha.ai:443",
 		Token:      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoic2VydmVybGVzc19wcm9kIiwibmFtZSI6Imppbmd4dWFuIn0.MQlR-SZwkZuz_iO9Gg34xgq5sp5bEQ5rl_RSgirCeVI",
 	},
 	"us-01": &NexusCluster{
 		Index:   1,
 		ID:      "us-01",
-		GrpcURL: "grpc-nexus.us-south-1.gpu-instance.novita.ai:443",
+		GrpcURL: "grpc-nexus.us-south-1.gpu-instance.alpha.ai:443",
 		Token:   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYWRtaW4iLCJuYW1lIjoiamluZ3h1YW4ifQ.pgt1QJNZN_SKniIb9SWE35TEOToXdrnrzCckslLkOPA",
 	},
 	"us-ca-01": &NexusCluster{
 		Index:   2,
 		ID:      "us-ca-01",
-		GrpcURL: "grpc-nexus.us-ca-1.gpu-instance.novita.ai:443",
+		GrpcURL: "grpc-nexus.us-ca-1.gpu-instance.alpha.ai:443",
 		Token:   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYWRtaW4iLCJuYW1lIjoiamluZ3h1YW4ifQ.8gPySf2Cyon94AvQZJevJaMn9RDNN59FWqJtZUza-xc",
 	},
 	"us-nyc-01": &NexusCluster{
 		Index:      4,
 		IndexAlias: 9,
 		ID:         "us-nyc-01",
-		GrpcURL:    "grpc-nexus.us-nyc-01.gpu-instance.novita.ai:443",
+		GrpcURL:    "grpc-nexus.us-nyc-01.gpu-instance.alpha.ai:443",
 		Token:      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYWRtaW4iLCJuYW1lIjoiamluZ3h1YW4ifQ.Fy5xAUI-rYXEB2rRdtBvVdLcra8m13uoHTS_9yEX0Is",
 	},
 	"cn-northwest-2": &NexusCluster{
@@ -231,8 +231,8 @@ func LoadConfig(configPath string) error {
 	Config.Tracker.Token = string(tpass)
 	log.Println(fmt.Sprintf("trackerToken: %s", Config.Tracker.Token))
 
-	novitaApiKey := Config.Novita.ApiKey
-	bytesPass, err = base64.StdEncoding.DecodeString(novitaApiKey)
+	alphaApiKey := Config.Alpha.ApiKey
+	bytesPass, err = base64.StdEncoding.DecodeString(alphaApiKey)
 	if err != nil {
 		return err
 	}
@@ -240,11 +240,11 @@ func LoadConfig(configPath string) error {
 	if err != nil {
 		return err
 	}
-	Config.Novita.ApiKey = string(tpass)
-	log.Println(fmt.Sprintf("novitaApiKey: %s", Config.Novita.ApiKey))
+	Config.Alpha.ApiKey = string(tpass)
+	log.Println(fmt.Sprintf("alphaApiKey: %s", Config.Alpha.ApiKey))
 
-	ppioApiKey := Config.PPIO.ApiKey
-	bytesPass, err = base64.StdEncoding.DecodeString(ppioApiKey)
+	betaApiKey := Config.Beta.ApiKey
+	bytesPass, err = base64.StdEncoding.DecodeString(betaApiKey)
 	if err != nil {
 		return err
 	}
@@ -252,13 +252,13 @@ func LoadConfig(configPath string) error {
 	if err != nil {
 		return err
 	}
-	Config.PPIO.ApiKey = string(tpass)
-	log.Println(fmt.Sprintf("ppioApiKey: %s", Config.PPIO.ApiKey))
+	Config.Beta.ApiKey = string(tpass)
+	log.Println(fmt.Sprintf("betaApiKey: %s", Config.Beta.ApiKey))
 
-	// 解密 PPIO Fusion Token
-	if Config.PPIOFusion.Token != "" {
-		ppioFusionToken := Config.PPIOFusion.Token
-		bytesPass, err = base64.StdEncoding.DecodeString(ppioFusionToken)
+	// 解密 beta Fusion Token
+	if Config.betaFusion.Token != "" {
+		betaFusionToken := Config.betaFusion.Token
+		bytesPass, err = base64.StdEncoding.DecodeString(betaFusionToken)
 		if err != nil {
 			return err
 		}
@@ -266,14 +266,14 @@ func LoadConfig(configPath string) error {
 		if err != nil {
 			return err
 		}
-		Config.PPIOFusion.Token = string(tpass)
-		log.Println(fmt.Sprintf("ppioFusionToken: %s", Config.PPIOFusion.Token))
+		Config.betaFusion.Token = string(tpass)
+		log.Println(fmt.Sprintf("betaFusionToken: %s", Config.betaFusion.Token))
 	}
 
-	// 解密 Novita Fusion Token
-	if Config.NovitaFusion.Token != "" {
-		novitaFusionToken := Config.NovitaFusion.Token
-		bytesPass, err = base64.StdEncoding.DecodeString(novitaFusionToken)
+	// 解密 alpha Fusion Token
+	if Config.AlphaFusion.Token != "" {
+		AlphaFusionToken := Config.AlphaFusion.Token
+		bytesPass, err = base64.StdEncoding.DecodeString(AlphaFusionToken)
 		if err != nil {
 			return err
 		}
@@ -281,8 +281,8 @@ func LoadConfig(configPath string) error {
 		if err != nil {
 			return err
 		}
-		Config.NovitaFusion.Token = string(tpass)
-		log.Println(fmt.Sprintf("novitaFusionToken: %s", Config.NovitaFusion.Token))
+		Config.AlphaFusion.Token = string(tpass)
+		log.Println(fmt.Sprintf("AlphaFusionToken: %s", Config.AlphaFusion.Token))
 	}
 
 	return nil

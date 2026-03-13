@@ -1,5 +1,5 @@
 package apis
 
 const (
-	GroupName = "nitor.novita.dev"
+	GroupName = "nitor.alpha.dev"
 )

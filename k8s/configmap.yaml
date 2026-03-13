@@ -20,11 +20,11 @@ data:
       config_path: /app/kubeconfig
       config_path_v2: /app/kubeconfig-v2
 
-    novita:
-      api_url: https://api.novita.ai
+    alpha:
+      api_url: https://api.alpha.ai
       api_key: 8UQy4NeinOI6wv5uMKFFaZyM56xvz7cGvh+9DU/lJF+gXI0uFTIfQ46MiovVo1s5
     
-    ppio:
+    beta:
       api_url: https://api.ppinfra.com
       api_key: lmdcra5vqsItl9MeB9szZAc6pLHel00ACwrqdU2P00NvjkcDwRrXg6UET3dMJq3+
 
@@ -32,11 +32,11 @@ data:
       base_url: https://tracker-server.pai-net.work
       token: lqFyKBsaG8Q+woIRSxp0Ew==
     
-    ppio_fusion:
+    beta_fusion:
       url: https://fusion-admin.paigod.work
       token: 0ADQvhYjCCbW8TZn8DiD6AcvcykSfHP8KLT3HsqNh50= 
 
-    novita_fusion:
+    alpha_fusion:
       url: https://fusion-admin.pplabs.tech
       token: 0ADQvhYjCCbW8TZn8DiD6AcvcykSfHP8KLT3HsqNh50= 
 ---

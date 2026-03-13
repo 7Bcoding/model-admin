@@ -152,7 +152,7 @@
                   v-for="model in scope.row.models"
                   :key="model.name + '_' + model.source"
                   size="small"
-                  :type="isPPIOModel(model) ? 'warning' : 'success'"
+                  :type="isbetaModel(model) ? 'warning' : 'success'"
                   effect="plain"
                   class="model-tag"
                   @click="openModelDetail(model)"
@@ -671,15 +671,15 @@ const updateScaleConfig = async () => {
   }
 }
 
-// 判断是否是 PPIO 模型
-const isPPIOModel = (model) => {
-  return model.source === 'ppio'
+// 判断是否是 beta 模型
+const isbetaModel = (model) => {
+  return model.source === 'beta'
 }
 
 // 打开模型详情
 const openModelDetail = (model) => {
-  const platform = model.source === 'ppio' ? 'ppio' : ''
-  const baseUrl = platform ? '/ppio-models' : '/models'
+  const platform = model.source === 'beta' ? 'beta' : ''
+  const baseUrl = platform ? '/beta-models' : '/models'
   router.push({
     name: 'EndpointManager',
     params: { modelName: model.name },

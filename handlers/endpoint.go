@@ -19,7 +19,7 @@ func GetModelEndpoints(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// 获取模型的 endpoints
-	endpoints, err := novitaModelService.GetModelEndpoints(modelName)
+	endpoints, err := AlphaModelService.GetModelEndpoints(modelName)
 	if err != nil {
 		utils.ErrorResponse(w, http.StatusInternalServerError, err.Error())
 		return
@@ -39,7 +39,7 @@ func TestEndpoint(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	result, err := novitaModelService.TestEndpoint(req.EndpointURL, req.ModelName)
+	result, err := AlphaModelService.TestEndpoint(req.EndpointURL, req.ModelName)
 	if err != nil {
 		utils.ErrorResponse(w, http.StatusInternalServerError, err.Error())
 		return

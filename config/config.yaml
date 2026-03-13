@@ -14,11 +14,11 @@ kubernetes:
   config_path: ./kubeconfig/nitor-prod-config 
   config_path_v2: ./kubeconfig/nebula-dev-config
 
-novita:
-  api_url: https://api.novita.ai
+alpha:
+  api_url: https://api.alpha.ai
   api_key: 8UQy4NeinOI6wv5uMKFFaZyM56xvz7cGvh+9DU/lJF+gXI0uFTIfQ46MiovVo1s5
 
-ppio:
+beta:
   api_url: https://api.ppinfra.com
   api_key: lmdcra5vqsItl9MeB9szZAc6pLHel00ACwrqdU2P00NvjkcDwRrXg6UET3dMJq3+
 
@@ -27,10 +27,10 @@ tracker:
   token: lqFyKBsaG8Q+woIRSxp0Ew==
 
 # Fusion 代理配置
-ppio_fusion:
+beta_fusion:
   url: https://api.ppinfra.com
-  token: # 加密后的 PPIO Fusion Token
+  token: # 加密后的 beta Fusion Token
 
-novita_fusion:
-  url: https://api.novita.ai
-  token: # 加密后的 Novita Fusion Token
+alpha_fusion:
+  url: https://api.alpha.ai
+  token: # 加密后的 alpha Fusion Token

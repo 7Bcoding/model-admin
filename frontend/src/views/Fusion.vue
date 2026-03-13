@@ -75,7 +75,7 @@ const handleBackendChange = (backend) => {
   fusionStore.setBackend(backend)
   // Update URL with backend parameter
   updateUrlParams()
-  ElMessage.success(`已切换到 ${backend === 'ppio' ? 'PPIO' : 'Novita'} 后端`)
+  ElMessage.success(`已切换到 ${backend === 'beta' ? 'beta' : 'alpha'} 后端`)
 }
 
 // Watch for activeTab changes to update URL
@@ -106,10 +106,10 @@ onMounted(() => {
   const urlBackend = route.query.backend
   const urlTab = route.query.tab
   
-  if (urlBackend && ['ppio', 'novita'].includes(urlBackend)) {
+  if (urlBackend && ['beta', 'alpha'].includes(urlBackend)) {
     fusionStore.setBackend(urlBackend)
   } else if (!fusionStore.selectedBackend) {
-    fusionStore.setBackend('ppio')
+    fusionStore.setBackend('beta')
   }
   
   if (urlTab && ['models', 'accounts', 'vendors', 'model-prices'].includes(urlTab)) {

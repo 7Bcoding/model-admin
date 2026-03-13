@@ -30,14 +30,14 @@ server {
         }
     }
 
-    # Fusion PPIO proxy
-    location /fusion-ppio/ {
+    # Fusion beta proxy
+    location /fusion-beta/ {
         proxy_pass http://${BACKEND_HOST}:${BACKEND_PORT}/api/v1/fusion/;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
-        proxy_set_header X-Fusion-Provider "ppio";
+        proxy_set_header X-Fusion-Provider "beta";
         
         # CORS headers
         add_header 'Access-Control-Allow-Origin' '*' always;
@@ -56,14 +56,14 @@ server {
         }
     }
 
-    # Fusion Novita proxy
-    location /fusion-novita/ {
+    # Fusion alpha proxy
+    location /fusion-alpha/ {
         proxy_pass http://${BACKEND_HOST}:${BACKEND_PORT}/api/v1/fusion/;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
-        proxy_set_header X-Fusion-Provider "novita";
+        proxy_set_header X-Fusion-Provider "alpha";
         
         # CORS headers
         add_header 'Access-Control-Allow-Origin' '*' always;

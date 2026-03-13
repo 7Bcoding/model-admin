@@ -34,7 +34,7 @@
                     vllm
                 </a>
                 {% if model_data.endpoints %}
-                <a href="https://grafana.aicloud.pplabs.tech/d/KOpAVRCIz1/prod-overview?orgId=1{% for endpoint in model_data.endpoints %}{% if '.runsync.novita.dev' in endpoint.url %}&var-endpoint={{ endpoint.url.replace('https://', '').replace('http://', '').split('.runsync.novita.dev')[0] }}{% endif %}{% endfor %}&from=now-24h&to=now&refresh=5s"
+                <a href="https://grafana.aicloud.pplabs.tech/d/KOpAVRCIz1/prod-overview?orgId=1{% for endpoint in model_data.endpoints %}{% if '.runsync.alpha.dev' in endpoint.url %}&var-endpoint={{ endpoint.url.replace('https://', '').replace('http://', '').split('.runsync.alpha.dev')[0] }}{% endif %}{% endfor %}&from=now-24h&to=now&refresh=5s"
                    target="_blank"
                    class="btn btn-sm btn-outline-info"
                    title="查看 Serverless 监控">
@@ -72,7 +72,7 @@
                     <tr>
                         <td>
                             <code>{{ endpoint.endpoint_id }}</code>
-                            {% if endpoint.url.endswith('.runsync.novita.dev') %}
+                            {% if endpoint.url.endswith('.runsync.alpha.dev') %}
                             <span class="badge bg-info ms-1" title="Serverless">S</span>
                             {% endif %}
                         </td>
@@ -669,14 +669,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 hljs.highlightElement(detailsContent);
                 
                 // 处理 Kubernetes 资源名称
-                if (endpointData.url && endpointData.url.endsWith('.runsync.novita.dev')) {
+                if (endpointData.url && endpointData.url.endsWith('.runsync.alpha.dev')) {
                     k8sResources.style.display = 'block';
                     
                     // 提取 endpoint 名称
                     const endpointName = endpointData.url
                         .replace('https://', '')
                         .replace('http://', '')
-                        .split('.runsync.novita.dev')[0];
+                        .split('.runsync.alpha.dev')[0];
                     
                     // 设置资源名称
                     k8sResources.querySelector('.se-resource-name').textContent = endpointName;
@@ -963,7 +963,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const endpoint_id = endpointUrl
                 .replace('https://', '')
                 .replace('http://', '')
-                .split('.runsync.novita.dev')[0];
+                .split('.runsync.alpha.dev')[0];
             
             console.log('Extracted endpoint_id:', endpoint_id);
             
@@ -1329,7 +1329,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 const endpoint_id = endpointUrl
                     .replace('https://', '')
                     .replace('http://', '')
-                    .split('.runsync.novita.dev')[0];
+                    .split('.runsync.alpha.dev')[0];
                     
                 console.log('Getting YAML for endpoint:', endpoint_id);
                 
@@ -1370,14 +1370,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 异步加载 GPU 资源信息
     async function loadGpuInfo(endpoint) {
-        if (!endpoint.url || !endpoint.url.includes('.runsync.novita.dev')) {
+        if (!endpoint.url || !endpoint.url.includes('.runsync.alpha.dev')) {
             return 'N/A';
         }
 
         const endpoint_id = endpoint.url
             .replace('https://', '')
             .replace('http://', '')
-            .split('.runsync.novita.dev')[0];
+            .split('.runsync.alpha.dev')[0];
             
         try {
             const response = await fetch(`/endpoint/se/${endpoint_id}`);
@@ -1517,8 +1517,8 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!endpointId || !urlElement) return;
         
         const url = urlElement.getAttribute('title');
-        const endpointName = url.includes('.runsync.novita.dev') ? 
-            url.replace('https://', '').replace('http://', '').split('.runsync.novita.dev')[0] :
+        const endpointName = url.includes('.runsync.alpha.dev') ? 
+            url.replace('https://', '').replace('http://', '').split('.runsync.alpha.dev')[0] :
             url;
         
         labels.push(endpointId);
@@ -1671,7 +1671,7 @@ async function updateWorkerConcurrency(endpointUrl) {
         const endpoint_id = endpointUrl
             .replace('https://', '')
             .replace('http://', '')
-            .split('.runsync.novita.dev')[0];
+            .split('.runsync.alpha.dev')[0];
             
         console.log('Extracted endpoint_id:', endpoint_id);
         

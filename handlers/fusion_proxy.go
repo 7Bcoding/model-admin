@@ -96,20 +96,20 @@ func FusionProxy(w http.ResponseWriter, r *http.Request) {
 
 	// 根据 provider 选择配置
 	switch strings.ToLower(provider) {
-	case "ppio":
-		if config.Config.PPIOFusion.URL == "" {
-			utils.ErrorResponse(w, http.StatusInternalServerError, "PPIO Fusion URL not configured")
+	case "beta":
+		if config.Config.betaFusion.URL == "" {
+			utils.ErrorResponse(w, http.StatusInternalServerError, "beta Fusion URL not configured")
 			return
 		}
-		targetURL, err = url.Parse(config.Config.PPIOFusion.URL)
-		token = config.Config.PPIOFusion.Token
-	case "novita":
-		if config.Config.NovitaFusion.URL == "" {
-			utils.ErrorResponse(w, http.StatusInternalServerError, "Novita Fusion URL not configured")
+		targetURL, err = url.Parse(config.Config.betaFusion.URL)
+		token = config.Config.betaFusion.Token
+	case "alpha":
+		if config.Config.AlphaFusion.URL == "" {
+			utils.ErrorResponse(w, http.StatusInternalServerError, "alpha Fusion URL not configured")
 			return
 		}
-		targetURL, err = url.Parse(config.Config.NovitaFusion.URL)
-		token = config.Config.NovitaFusion.Token
+		targetURL, err = url.Parse(config.Config.AlphaFusion.URL)
+		token = config.Config.AlphaFusion.Token
 	default:
 		utils.ErrorResponse(w, http.StatusBadRequest, "Invalid X-Fusion-Provider: "+provider)
 		return

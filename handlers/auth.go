@@ -45,7 +45,7 @@ RpIVUCWOHx7+WTJyxiZPqjA7yvBRqWc5eCQsQJ2g+rc3+xHARgzgyJ/SGbcZ
 -----END CERTIFICATE-----`
 
 func init() {
-	casdoorsdk.InitConfig("https://iam.ppio.cloud", "f3c9bbc3ec62ed982b4a", "52ac3134b3ba16b3361754972cd870db51caa77c", cert, "PPIO", "faas-ops")
+	casdoorsdk.InitConfig("https://iam.beta.cloud", "f3c9bbc3ec62ed982b4a", "52ac3134b3ba16b3361754972cd870db51caa77c", cert, "beta", "faas-ops")
 }
 
 type Token struct {
@@ -155,7 +155,7 @@ func HandleFeishuLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	client := casdoorsdk.NewClient("https://iam.ppio.cloud", "f3c9bbc3ec62ed982b4a", "52ac3134b3ba16b3361754972cd870db51caa77c", cert, "PPIO", "faas-ops")
+	client := casdoorsdk.NewClient("https://iam.beta.cloud", "f3c9bbc3ec62ed982b4a", "52ac3134b3ba16b3361754972cd870db51caa77c", cert, "beta", "faas-ops")
 
 	log.Printf("Feishu login with code: %s, state: %s", code, state)
 

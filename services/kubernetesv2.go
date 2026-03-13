@@ -19,7 +19,7 @@ import (
 	v1beta1 "gitlab.paigod.work/ai-cloud/nebula/api/v1beta1"
 	nebulaclientset "gitlab.paigod.work/ai-cloud/nebula/pkg/client/clientset/versioned"
 	"gitlab.paigod.work/ai-cloud/nebula/pkg/client/informers/externalversions"
-	nebulaLister "gitlab.paigod.work/ai-cloud/nebula/pkg/client/listers/nebula.novita.ai/v1beta1"
+	nebulaLister "gitlab.paigod.work/ai-cloud/nebula/pkg/client/listers/nebula.alpha.ai/v1beta1"
 )
 
 type KubernetesServiceV2 struct {

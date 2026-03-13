@@ -33,9 +33,9 @@ const routes = [
     component: () => import('@/views/Models.vue')
   },
   {
-    path: '/ppio-models',
-    name: 'PPIOModels',
-    component: () => import('@/views/PPIOModels.vue'),
+    path: '/beta-models',
+    name: 'betaModels',
+    component: () => import('@/views/betaModels.vue'),
     meta: { requiresAuth: true }
   },
   {

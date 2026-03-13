@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { getModels } from '../api/models'
 
-export const usePPIOModelsStore = defineStore('ppioModels', {
+export const usebetaModelsStore = defineStore('betaModels', {
   state: () => ({
     models: [],
     lastFetchTime: null,
@@ -25,8 +25,8 @@ export const usePPIOModelsStore = defineStore('ppioModels', {
       }
 
       try {
-        // Add platform=ppio parameter to the request
-        const response = await getModels({ platform: 'ppio' })
+        // Add platform=beta parameter to the request
+        const response = await getModels({ platform: 'beta' })
         if (response?.data?.data?.data) {
           const modelsList = response.data.data.data
           
@@ -54,7 +54,7 @@ export const usePPIOModelsStore = defineStore('ppioModels', {
         }
         throw new Error('Invalid response format')
       } catch (error) {
-        console.error('Error fetching PPIO models:', error)
+        console.error('Error fetching beta models:', error)
         throw error
       }
     },

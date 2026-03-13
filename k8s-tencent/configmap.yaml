@@ -18,11 +18,11 @@ data:
     kubernetes:
       config_path: /app/kubeconfig
 
-    novita:
-      api_url: https://api.novita.ai
+    alpha:
+      api_url: https://api.alpha.ai
       api_key: f6907a06-dac2-4132-9ab5-ff28c1fd282e
   
-    ppio:
+    beta:
       api_url: https://api.ppinfra.com
       api_key: ed83a032-9bd8-41ed-b725-fac4a57f8f79
 

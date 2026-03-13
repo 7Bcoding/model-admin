@@ -61,7 +61,7 @@ func ListEndpoints(w http.ResponseWriter, r *http.Request) {
 		// 移除 https:// 或 http:// 前缀
 		url = strings.TrimPrefix(url, "https://")
 		url = strings.TrimPrefix(url, "http://")
-		if matches := strings.Split(url, ".runsync.novita.dev"); len(matches) > 0 {
+		if matches := strings.Split(url, ".runsync.alpha.dev"); len(matches) > 0 {
 			name := matches[0]
 			return name
 		}
@@ -259,8 +259,8 @@ func extractSEFromURL(url string) string {
 	if url == "" {
 		return ""
 	}
-	// 匹配 https://{name}.runsync.novita.dev 格式
-	if matches := strings.Split(url, ".runsync.novita.dev"); len(matches) > 0 {
+	// 匹配 https://{name}.runsync.alpha.dev 格式
+	if matches := strings.Split(url, ".runsync.alpha.dev"); len(matches) > 0 {
 		name := matches[0]
 		// 移除 https:// 或 http:// 前缀
 		name = strings.TrimPrefix(name, "https://")

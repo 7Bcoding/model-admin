@@ -37,15 +37,15 @@ export const useServerlessStore = defineStore('serverless', {
         const modelsResponse = await axios.get('/models')
         const models = modelsResponse.data?.data?.data || []
 
-        // 获取 PPIO 模型列表
-        const ppioModelsResponse = await axios.get('/models', { params: { platform: 'ppio' } })
-        const ppioModels = ppioModelsResponse.data?.data?.data || []
+        // 获取 beta 模型列表
+        const betaModelsResponse = await axios.get('/models', { params: { platform: 'beta' } })
+        const betaModels = betaModelsResponse.data?.data?.data || []
 
         // 处理模型关联
         const extractEndpointFromURL = (url) => {
           if (!url) return ''
           url = url.replace('https://', '').replace('http://', '')
-          const matches = url.split('.runsync.novita.dev')
+          const matches = url.split('.runsync.alpha.dev')
           return matches[0] || ''
         }
 
@@ -70,8 +70,8 @@ export const useServerlessStore = defineStore('serverless', {
           }
         })
 
-        // 处理 PPIO 模型
-        ppioModels.forEach(model => {
+        // 处理 beta 模型
+        betaModels.forEach(model => {
           if (model.endpoints) {
             model.endpoints.forEach(endpoint => {
               const endpointName = extractEndpointFromURL(endpoint.url)
@@ -79,9 +79,9 @@ export const useServerlessStore = defineStore('serverless', {
                 if (!endpointToModels.has(endpointName)) {
                   endpointToModels.set(endpointName, new Map())
                 }
-                endpointToModels.get(endpointName).set(model.model_name + '_ppio', {
+                endpointToModels.get(endpointName).set(model.model_name + '_beta', {
                   name: model.model_name,
-                  source: 'ppio'
+                  source: 'beta'
                 })
               }
             })

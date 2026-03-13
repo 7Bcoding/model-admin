@@ -29,7 +29,7 @@ export default {
       const redirectUri = encodeURIComponent(import.meta.env.VITE_FEISHU_CALLBACK_URL);
       const state = Math.random().toString(36).substring(2); // 防CSRF
   
-      window.location.href = `https://iam.ppio.cloud/login/oauth/authorize?` +
+      window.location.href = `https://iam.beta.cloud/login/oauth/authorize?` +
       `client_id=${clientId}&response_type=code&redirect_uri=${redirectUri}&scope=profile&state=xaspedfi1x`;
     };
 

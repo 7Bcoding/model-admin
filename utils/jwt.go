@@ -8,7 +8,7 @@ import (
 	"github.com/golang-jwt/jwt"
 )
 
-var jwtSecret = []byte("ppio-llm-secret-1234") // 在生产环境中应该使用环境变量
+var jwtSecret = []byte("beta-llm-secret-1234") // 在生产环境中应该使用环境变量
 
 type Claims struct {
 	UserID   int    `json:"user_id"`

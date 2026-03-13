@@ -11,13 +11,13 @@ import (
 )
 
 // 声明为包级变量
-var novitaModelService *services.ModelService
-var ppioModelService *services.ModelService
+var AlphaModelService *services.ModelService
+var BetaModelService *services.ModelService
 
 // InitModelService 初始化模型服务
-func InitModelService(novitaService *services.ModelService, ppioService *services.ModelService) {
-	novitaModelService = novitaService
-	ppioModelService = ppioService
+func InitModelService(alphaService *services.ModelService, betaService *services.ModelService) {
+	AlphaModelService = alphaService
+	BetaModelService = betaService
 }
 
 type ModelResponse struct {
@@ -27,18 +27,18 @@ type ModelResponse struct {
 }
 
 // getModelService 根据请求的platform参数返回对应的模型服务
-// platform=ppio 返回 ppioModelService，否则返回 novitaModelService
+// platform=beta 返回 BetaModelService，否则返回 AlphaModelService
 func getModelService(r *http.Request) *services.ModelService {
 	// get platform from query params
 	platform := r.URL.Query().Get("platform")
 
-	// if platform is ppio, return ppio service
-	if platform == "ppio" {
-		return ppioModelService
+	// if platform is beta, return beta service
+	if platform == "beta" {
+		return BetaModelService
 	}
 
-	// default return novita service
-	return novitaModelService
+	// default return alpha service
+	return AlphaModelService
 }
 
 func ListModelsInspection(w http.ResponseWriter, r *http.Request) {
@@ -128,14 +128,14 @@ func StarModel(w http.ResponseWriter, r *http.Request) {
 	log.Printf("User from context - ID: %d, Username: %s", claims.UserID, claims.Username)
 
 	// 检查 modelService 是否已初始化
-	if novitaModelService == nil {
+	if AlphaModelService == nil {
 		log.Printf("modelService is nil")
 		utils.ErrorResponse(w, http.StatusInternalServerError, "Service not initialized")
 		return
 	}
 
 	// 调用 modelService 收藏模型
-	err := novitaModelService.StarModel(claims.UserID, req.ModelName)
+	err := AlphaModelService.StarModel(claims.UserID, req.ModelName)
 	if err != nil {
 		log.Printf("Error starring model: %v", err)
 		utils.ErrorResponse(w, http.StatusInternalServerError, err.Error())
@@ -177,14 +177,14 @@ func UnstarModel(w http.ResponseWriter, r *http.Request) {
 	log.Printf("User from context - ID: %d, Username: %s", claims.UserID, claims.Username)
 
 	// 检查 modelService 是否已初始化
-	if novitaModelService == nil {
+	if AlphaModelService == nil {
 		log.Printf("modelService is nil")
 		utils.ErrorResponse(w, http.StatusInternalServerError, "Service not initialized")
 		return
 	}
 
 	// 调用 modelService 取消收藏模型
-	err := novitaModelService.UnstarModel(claims.UserID, req.ModelName)
+	err := AlphaModelService.UnstarModel(claims.UserID, req.ModelName)
 	if err != nil {
 		log.Printf("Error unstarring model: %v", err)
 		utils.ErrorResponse(w, http.StatusInternalServerError, err.Error())
@@ -229,14 +229,14 @@ func UpdateModelNote(w http.ResponseWriter, r *http.Request) {
 	log.Printf("User from context - ID: %d, Username: %s", claims.UserID, claims.Username)
 
 	// 检查 modelService 是否已初始化
-	if novitaModelService == nil {
+	if AlphaModelService == nil {
 		log.Printf("modelService is nil")
 		utils.ErrorResponse(w, http.StatusInternalServerError, "Service not initialized")
 		return
 	}
 
 	// 调用 modelService 更新笔记和飞书群组ID
-	err := novitaModelService.UpdateNote(req.ModelName, req.Note, req.OpenChatId, req.InferenceEngine)
+	err := AlphaModelService.UpdateNote(req.ModelName, req.Note, req.OpenChatId, req.InferenceEngine)
 	if err != nil {
 		log.Printf("Error updating note: %v", err)
 		utils.ErrorResponse(w, http.StatusInternalServerError, err.Error())

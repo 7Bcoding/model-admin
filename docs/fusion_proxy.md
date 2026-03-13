@@ -2,7 +2,7 @@
 
 ## 概述
 
-为了提高安全性和简化架构，我们在后端服务器上实现了统一的 Fusion 代理功能。通过 header 驱动的路由选择机制，使用单一接口来处理前端发来的 `fusion-ppio/*` 和 `fusion-novita/*` 路径的请求，并转发到相应的后端服务。
+为了提高安全性和简化架构，我们在后端服务器上实现了统一的 Fusion 代理功能。通过 header 驱动的路由选择机制，使用单一接口来处理前端发来的 `fusion-beta/*` 和 `fusion-alpha/*` 路径的请求，并转发到相应的后端服务。
 
 ## 配置
 
@@ -12,13 +12,13 @@
 
 ```yaml
 # Fusion 代理配置
-ppio_fusion:
+beta_fusion:
   url: https://api.ppinfra.com
-  token: # 加密后的 PPIO Fusion Token
+  token: # 加密后的 beta Fusion Token
 
-novita_fusion:
-  url: https://api.novita.ai
-  token: # 加密后的 Novita Fusion Token
+alpha_fusion:
+  url: https://api.alpha.ai
+  token: # 加密后的 alpha Fusion Token
 ```
 
 ### 2. Token 加密
@@ -30,30 +30,29 @@ Token 需要使用 AES 加密后存储在配置文件中。使用与其他敏感
 ### Header 驱动的路由选择
 
 统一代理服务根据 `X-Fusion-Provider` header 来决定路由目标：
-- `X-Fusion-Provider: ppio` → 路由到 PPIO Fusion 服务
-- `X-Fusion-Provider: novita` → 路由到 Novita Fusion 服务
+- `X-Fusion-Provider: beta` → 路由到 beta Fusion 服务
 
 ### 路由映射
 
 #### 统一代理接口
 - 前端请求路径：`/api/v1/fusion/*`
 - 根据 `X-Fusion-Provider` header 转发到：
-  - PPIO: `{ppio_fusion.url}/admin/v1/*`
-  - Novita: `{novita_fusion.url}/admin/v1/*`
+  - beta: `{beta_fusion.url}/admin/v1/*`
+  - alpha: `{alpha_fusion.url}/admin/v1/*`
 
 ## 示例
 
 ### 请求示例
 ```
-前端请求：GET /fusion-ppio/models
-Nginx 转发：GET /api/v1/fusion/models (设置 X-Fusion-Provider: ppio)
+前端请求：GET /fusion-beta/models
+Nginx 转发：GET /api/v1/fusion/models (设置 X-Fusion-Provider: beta)
 后端代理到：GET https://api.ppinfra.com/admin/v1/models
 ```
 
 ```
-前端请求：POST /fusion-novita/deployments
-Nginx 转发：POST /api/v1/fusion/deployments (设置 X-Fusion-Provider: novita)
-后端代理到：POST https://api.novita.ai/admin/v1/deployments
+前端请求：POST /fusion-alpha/deployments
+Nginx 转发：POST /api/v1/fusion/deployments (设置 X-Fusion-Provider: alpha)
+后端代理到：POST https://api.alpha.ai/admin/v1/deployments
 ```
 
 ## 架构优势
@@ -107,7 +106,7 @@ Nginx 转发：POST /api/v1/fusion/deployments (设置 X-Fusion-Provider: novita
      - 代理配置指向统一的 `/api/v1/fusion` 接口
      - 自动设置 `X-Fusion-Provider` header 来区分服务
    - **生产环境**：`nginx.conf.template` 已更新，通过设置 `X-Fusion-Provider` header 来区分服务
-   - 前端代码保持不变，继续使用 `/fusion-ppio/*` 和 `/fusion-novita/*` 路径
+   - 前端代码保持不变，继续使用 `/fusion-beta/*` 和 `/fusion-alpha/*` 路径
 
 3. **验证功能**：
    - 测试代理转发是否正常
@@ -126,8 +125,8 @@ Nginx 转发：POST /api/v1/fusion/deployments (设置 X-Fusion-Provider: novita
 
 ### 常见错误
 1. **缺少 Provider Header**：检查 Nginx 或 Vite 配置是否正确设置 `X-Fusion-Provider` header
-2. **无效的 Provider 值**：确保 header 值为 "ppio" 或 "novita"
-3. **配置未找到**：检查配置文件中是否正确添加了 `ppio_fusion` 和 `novita_fusion` 配置
+2. **无效的 Provider 值**：确保 header 值为 "beta" 或 "alpha"
+3. **配置未找到**：检查配置文件中是否正确添加了 `beta_fusion` 和 `alpha_fusion` 配置
 4. **Token 解密失败**：检查 Token 是否正确加密，AES 密钥是否正确
 5. **连接失败**：检查目标 URL 是否可访问，网络连接是否正常
 6. **认证失败**：检查 Token 是否有效，权限是否足够
@@ -142,8 +141,8 @@ Nginx 转发：POST /api/v1/fusion/deployments (设置 X-Fusion-Provider: novita
 
 查看日志示例：
 ```
-Proxying Fusion request to ppio: GET /api/v1/fusion/models -> https://api.ppinfra.com/admin/v1/models
-Proxying Fusion request to novita: POST /api/v1/fusion/deployments -> https://api.novita.ai/admin/v1/deployments
+Proxying Fusion request to beta: GET /api/v1/fusion/models -> https://api.ppinfra.com/admin/v1/models
+Proxying Fusion request to alpha: POST /api/v1/fusion/deployments -> https://api.alpha.ai/admin/v1/deployments
 ```
 
 ## 审计日志功能

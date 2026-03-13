@@ -4,7 +4,7 @@
       <div class="header-left">
         <div class="title-section">
           <i class="el-icon-cpu title-icon"></i>
-          <h2 class="page-title">模型管理(PPIO)</h2>
+          <h2 class="page-title">模型管理(beta)</h2>
         </div>
       </div>
       <div class="filters">
@@ -253,13 +253,13 @@
 
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
-import { usePPIOModelsStore } from '../stores/ppioModels'
+import { usebetaModelsStore } from '../stores/betaModels'
 import { ElMessage } from 'element-plus'
 import { useRouter } from 'vue-router'
 import { starModel, unstarModel, updateModelNote } from '../api/models'
 
 const router = useRouter()
-const ppioModelsStore = usePPIOModelsStore()
+const betaModelsStore = usebetaModelsStore()
 const loading = ref(false)
 const search = ref('')
 const showStarred = ref(false)
@@ -276,7 +276,7 @@ let modelDetailsModal = null
 const fetchModels = async (forceRefresh = false) => {
   loading.value = true
   try {
-    await ppioModelsStore.fetchModels(forceRefresh)
+    await betaModelsStore.fetchModels(forceRefresh)
   } catch (error) {
     ElMessage.error('获取模型列表失败')
     console.error(error)
@@ -287,7 +287,7 @@ const fetchModels = async (forceRefresh = false) => {
 
 // 过滤后的模型列表
 const filteredModels = computed(() => {
-  let models = ppioModelsStore.getModels
+  let models = betaModelsStore.getModels
   
   if (!models || !Array.isArray(models)) {
     console.warn('Models is not an array:', models)
@@ -363,10 +363,10 @@ const getStatusText = (status) => {
 const toggleStar = async (model) => {
   try {
     if (model.starred) {
-      await unstarModel(model.model_name, 'ppio')
+      await unstarModel(model.model_name, 'beta')
       ElMessage.success('取消收藏成功')
     } else {
-      await starModel(model.model_name, 'ppio')
+      await starModel(model.model_name, 'beta')
       ElMessage.success('收藏成功')
     }
     await fetchModels(true)
@@ -381,7 +381,7 @@ const showEndpoints = (model) => {
   router.push({
     name: 'EndpointManager',
     params: { modelName: model.model_name },
-    query: { platform: 'ppio' }
+    query: { platform: 'beta' }
   })
 }
 
@@ -391,7 +391,7 @@ const showDeploymentInfo = (model) => {
     name: 'ModelApi',
     query: { 
       modelName: model.model_name,
-      platform: 'ppio'
+      platform: 'beta'
     }
   })
 }
@@ -431,7 +431,7 @@ const saveNote = async () => {
       noteInput.value, 
       openChatIdInput.value,
       inferenceEngineInput.value,
-      'ppio'
+      'beta'
     )
 
     // 更新本地数据
@@ -500,8 +500,8 @@ const openMonitor = (model, type) => {
     serverless: model.endpoints ? 
       `https://grafana.aicloud.pplabs.tech/d/KOpAVRCIz1/prod-overview?orgId=1${
         model.endpoints
-          .filter(endpoint => endpoint.url.includes('.runsync.novita.dev'))
-          .map(endpoint => `&var-endpoint=${endpoint.url.replace('https://', '').replace('http://', '').split('.runsync.novita.dev')[0]}`)
+          .filter(endpoint => endpoint.url.includes('.runsync.alpha.dev'))
+          .map(endpoint => `&var-endpoint=${endpoint.url.replace('https://', '').replace('http://', '').split('.runsync.alpha.dev')[0]}`)
           .join('')
       }&from=now-24h&to=now&refresh=5s` : null
   }
@@ -527,16 +527,16 @@ const getSglangModelId = (modelName) => {
 // 页面挂载时从 localStorage 恢复搜索条件
 onMounted(async () => {
   // 恢复搜索框内容
-  const savedSearch = localStorage.getItem('ppio_models_search_query')
+  const savedSearch = localStorage.getItem('beta_models_search_query')
   if (savedSearch !== null) {
     search.value = savedSearch
   }
   // 恢复过滤选项
-  const savedShowStarred = localStorage.getItem('ppio_models_show_starred')
+  const savedShowStarred = localStorage.getItem('beta_models_show_starred')
   if (savedShowStarred !== null) {
     showStarred.value = savedShowStarred === 'true'
   }
-  const savedShowActive = localStorage.getItem('ppio_models_show_active')
+  const savedShowActive = localStorage.getItem('beta_models_show_active')
   if (savedShowActive !== null) {
     showActive.value = savedShowActive === 'true'
   }
@@ -545,13 +545,13 @@ onMounted(async () => {
 
 // 监听搜索条件变化，保存到 localStorage
 watch(search, (val) => {
-  localStorage.setItem('ppio_models_search_query', val)
+  localStorage.setItem('beta_models_search_query', val)
 })
 watch(showStarred, (val) => {
-  localStorage.setItem('ppio_models_show_starred', val)
+  localStorage.setItem('beta_models_show_starred', val)
 })
 watch(showActive, (val) => {
-  localStorage.setItem('ppio_models_show_active', val)
+  localStorage.setItem('beta_models_show_active', val)
 })
 </script>
 

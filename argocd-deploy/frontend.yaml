@@ -27,13 +27,13 @@ spec:
           value: llm-ops-backend.llm-ops.svc.cluster.local
         - name: BACKEND_PORT
           value: "8080"
-        - name: BACKEND_PPIO
+        - name: BACKEND_BETA
           value: https://fusion-admin.paigod.work
-        - name: BACKEND_NOVITA
+        - name: BACKEND_ALPHA
           value: https://fusion-admin.pplabs.tech
-        - name: FUSION_NOVITA_TOKEN
+        - name: FUSION_ALPHA_TOKEN
           value: Xz8.kJ-Qo!2v_Rt@uY.5sP*gN3aC9x
-        - name: FUSION_PPIO_TOKEN
+        - name: FUSION_BETA_TOKEN
           value: Xz8.kJ-Qo!2v_Rt@uY.5sP*gN3aC9x
         image: image.ppinfra.com/llm-ops/frontend:0.7.0
         imagePullPolicy: IfNotPresent

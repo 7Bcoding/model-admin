@@ -3,19 +3,19 @@ import { ref, computed } from 'vue'
 
 export const useFusionStore = defineStore('fusion', () => {
   // Backend selection state
-  const selectedBackend = ref('ppio') // 'ppio' or 'novita'
+  const selectedBackend = ref('beta') // 'beta' or 'alpha'
   
   // Backend configurations
   const backends = {
-    ppio: {
-      name: 'PPIO',
-      baseUrl: '/fusion-ppio',
-      description: 'PPIO Fusion Backend'
+    beta: {
+      name: 'beta',
+      baseUrl: '/fusion-beta',
+      description: 'beta Fusion Backend'
     },
-    novita: {
-      name: 'Novita',
-      baseUrl: '/fusion-novita',
-      description: 'Novita Fusion Backend'
+    alpha: {
+      name: 'alpha',
+      baseUrl: '/fusion-alpha',
+      description: 'alpha Fusion Backend'
     }
   }
   

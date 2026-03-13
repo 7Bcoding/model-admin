@@ -224,7 +224,7 @@
                       {{ endpoint.endpoint_id }}
                       <!-- 为包含"融"和"2.0"的endpoint添加标记 -->
                       <span v-if="endpoint.url.includes('/fusion/v1/')" class="special-tag rong-tag">融</span>
-                      <span v-if="endpoint.url.includes('sls2.novita.ai')" class="special-tag version-tag">2.0</span>
+                      <span v-if="endpoint.url.includes('sls2.alpha.ai')" class="special-tag version-tag">2.0</span>
                     </div>
                     <div class="legend-url text-muted clickable" @click="goToServerless(getEndpointName(endpoint.url), endpoint.url)">
                       {{ getEndpointName(endpoint.url) }}
@@ -842,8 +842,8 @@ export default {
 
     // 从 URL 中取 serverless endpoint 名称
     const extractServerlessEndpoint = (url) => {
-      if (!url.includes('runsync.novita.dev')) return null
-      const match = url.match(/https:\/\/(.*?)\.runsync\.novita\.dev/)
+      if (!url.includes('runsync.alpha.dev')) return null
+      const match = url.match(/https:\/\/(.*?)\.runsync\.alpha\.dev/)
       return match ? match[1] : null
     }
 
@@ -1033,7 +1033,7 @@ export default {
     
     // 判断是否 Serverless 端点
     const isServerless = (endpoint) => {
-      return endpoint.url.includes('.runsync.novita.dev')
+      return endpoint.url.includes('.runsync.alpha.dev')
     }
 
     const getSglangModelId = (modelName) => {
@@ -1052,7 +1052,7 @@ export default {
 
       const platform = route.query.platform
       let overviewUrl = `https://grafana.aicloud.pplabs.tech/d/430e32c1-c956-4f4d-a4e0-8c463180cbe3/ai-cloud-platform-sla-metrics-new?orgId=1&from=now-12h&to=now&orgId=1&var-CustomerUUID=ALL&var-Model=${encodeURIComponent(modelName.value)}&refresh=5s&var-Customer=All`
-      if (platform === 'ppio') {
+      if (platform === 'beta') {
         overviewUrl = `https://grafana.aicloud.paigod.work/d/a9131a24-3266-4b18-8aae-b5fc2ec45adc/ai-cloud-platform-sla-metrics?orgId=1&from=now-12h&to=now&orgId=1&var-CustomerUUID=ALL&var-Model=${encodeURIComponent(modelName.value)}&refresh=5s&var-Customer=All`
       }
 
@@ -1064,8 +1064,8 @@ export default {
         serverless: endpoints.value ? 
           `https://grafana.aicloud.pplabs.tech/d/KOpAVRCIz1/prod-overview?orgId=1${
             endpoints.value
-              .filter(endpoint => endpoint.url.includes('.runsync.novita.dev'))
-              .map(endpoint => `&var-endpoint=${endpoint.url.replace('https://', '').replace('http://', '').split('.runsync.novita.dev')[0]}`)
+              .filter(endpoint => endpoint.url.includes('.runsync.alpha.dev'))
+              .map(endpoint => `&var-endpoint=${endpoint.url.replace('https://', '').replace('http://', '').split('.runsync.alpha.dev')[0]}`)
               .join('')
           }&from=now-24h&to=now&refresh=5s` : null
       }
@@ -1217,22 +1217,22 @@ export default {
       let grafanaUrl = ''
 
       // 1. 2.0 (sls2) endpoint logic
-      if (endpoint.url.includes('sls2.novita.ai')) {
+      if (endpoint.url.includes('sls2.alpha.ai')) {
         grafanaUrl = `https://grafana.aicloud.pplabs.tech/d/cegvuwvbnppfkb/gateway-overview?orgId=1&refresh=5s&var-env=zjxCFBjVz&var-deployment=${deploymentName}&var-instance=All`
       }
       // 2. Fusion endpoint logic
       else if (endpoint.url.includes('/fusion/v1/')) {
-        if (platform === 'ppio') {
-          // PPIO Fusion URL
+        if (platform === 'beta') {
+          // beta Fusion URL
           grafanaUrl = `https://grafana.aicloud.paigod.work/d/bejkkcdnlbo5ca/fusion-gateway-overview?orgId=1&refresh=10s&var-env=aI7J0Qa4k&var-model=${deploymentName}&var-provider=All&from=now-6h&to=now`
         } else {
-          // Novita Fusion URL
+          // alpha Fusion URL
           grafanaUrl = `https://grafana.aicloud.pplabs.tech/d/bejkkcdnlbo5ca/fusion-gateway-overview?orgId=1&refresh=5s&var-env=zjxCFBjVz&var-model=${deploymentName}&var-provider=All&from=now-6h&to=now`
         }
       } 
       // 3. Original Serverless endpoint logic
-      else if (endpoint.url.includes('.runsync.novita.dev')) {
-        const seName = endpoint.url.split('.runsync.novita.dev')[0].replace('https://', '')
+      else if (endpoint.url.includes('.runsync.alpha.dev')) {
+        const seName = endpoint.url.split('.runsync.alpha.dev')[0].replace('https://', '')
         grafanaUrl = `https://grafana.aicloud.pplabs.tech/d/KOpAVRCIz1/prod-overview?var-endpoint=${seName}`
       }
 
@@ -1887,8 +1887,8 @@ export default {
       if (!url) return '-'
 
       try {
-        // 2.0 (sls2) format: https://{deployment}.us-01.sls2.novita.ai...
-        let match = url.match(/https?:\/\/([^.]+)\.us-01\.sls2\.novita\.ai/)
+        // 2.0 (sls2) format: https://{deployment}.us-01.sls2.alpha.ai...
+        let match = url.match(/https?:\/\/([^.]+)\.us-01\.sls2\.alpha\.ai/)
         if (match && match[1]) {
           return match[1]
         }
@@ -1901,8 +1901,8 @@ export default {
           }
         }
 
-        // Original serverless format: https://{endpointName}.runsync.novita.dev
-        match = url.match(/https?:\/\/([^.]+)\.runsync\.novita\.dev/)
+        // Original serverless format: https://{endpointName}.runsync.alpha.dev
+        match = url.match(/https?:\/\/([^.]+)\.runsync\.alpha\.dev/)
         if (match && match[1]) {
           return match[1]
         }
@@ -1917,7 +1917,7 @@ export default {
     // 在 setup 中添加 goToServerless 方法
     const goToServerless = (endpointName, endpointUrl = '') => {
       // 判断是否是 2.0 版本的 endpoint
-      if (endpointUrl.includes('sls2.novita.ai')) {
+      if (endpointUrl.includes('sls2.alpha.ai')) {
         // 2.0 版本跳转到 nebula 管理页面的 deployment tab
         router.push({
           path: '/nebula/deployment',
@@ -1963,7 +1963,7 @@ export default {
     const getEndpointTypeTag = (url) => {
       if (!url) return ''
       // serverless2.0
-      if (/^https:\/\/[\w-]+\.us-01\.sls2\.novita\.ai/.test(url)) {
+      if (/^https:\/\/[\w-]+\.us-01\.sls2\.alpha\.ai/.test(url)) {
         return { tag: '2.0', color: '#2563eb', tip: 'Serverless 2.0' }
       }
       // 融合服

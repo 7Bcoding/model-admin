@@ -121,7 +121,7 @@ DELETE /api/cache/clear-all
 
 **重要特性：**
 - **全局共享**：所有用户看到相同的缓存数据
-- **环境区分**：不同的URL参数（如platform=novita vs platform=ppio）会生成不同的缓存键
+- **环境区分**：不同的URL参数（如platform=alpha vs platform=beta）会生成不同的缓存键
 - **一致性保证**：相同的请求URL总是生成相同的缓存键
 
 ## 日志输出

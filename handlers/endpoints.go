@@ -204,7 +204,7 @@ func GetEndpointMetrics(w http.ResponseWriter, r *http.Request) {
 
 	log.Printf("=== Handling GetEndpointMetrics Request for endpoint: %s ===", seName)
 	// 构建请求 URL
-	url := fmt.Sprintf("https://metric.novita.dev/metrics?endpoint=%s", seName)
+	url := fmt.Sprintf("https://metric.alpha.dev/metrics?endpoint=%s", seName)
 
 	// 创建请求
 	req, err := http.NewRequest("GET", url, nil)

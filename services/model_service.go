@@ -19,16 +19,16 @@ type ModelService struct {
 
 func NewModelService() *ModelService {
 	return &ModelService{
-		apiHost:      config.Config.Novita.ApiURL,
-		apiKey:       config.Config.Novita.ApiKey,
+		apiHost:      config.Config.alpha.ApiURL,
+		apiKey:       config.Config.alpha.ApiKey,
 		cacheManager: GetCacheManager(),
 	}
 }
 
-func NewPPIOModelService() *ModelService {
+func NewBetaModelService() *ModelService {
 	return &ModelService{
-		apiHost:      config.Config.PPIO.ApiURL,
-		apiKey:       config.Config.PPIO.ApiKey,
+		apiHost:      config.Config.beta.ApiURL,
+		apiKey:       config.Config.Beta.ApiKey,
 		cacheManager: GetCacheManager(),
 	}
 }
@@ -367,7 +367,7 @@ func (s *ModelService) AddEndpoint(modelName string, endpointID string, epurl st
 		"url":                       epurl,
 		"weight":                    weight,
 		"check_health_url":          "/health",
-		"provider":                  "novita-serverless",
+		"provider":                  "alpha-serverless",
 		"status":                    "ENDPOINT_STATUS_SERVING",
 		"supported_api_flag":        supportedApiFlag,
 		"skip_testflight_while_add": skipTestflightWhileAdd,

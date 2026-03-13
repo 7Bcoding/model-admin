@@ -34,7 +34,7 @@ type NitorV1beta1Interface interface {
 	WorkersGetter
 }
 
-// NitorV1beta1Client is used to interact with features provided by the nitor.novita.dev group.
+// NitorV1beta1Client is used to interact with features provided by the nitor.alpha.dev group.
 type NitorV1beta1Client struct {
 	restClient rest.Interface
 }

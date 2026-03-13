@@ -2,19 +2,19 @@
 
 ## 实施概述
 
-成功实现了后端 Fusion 代理功能，将前端的 `fusion-ppio/*` 和 `fusion-novita/*` 请求通过后端服务器转发到相应的外部 API，提高了系统的安全性。
+成功实现了后端 Fusion 代理功能，将前端的 `fusion-beta/*` 和 `fusion-alpha/*` 请求通过后端服务器转发到相应的外部 API，提高了系统的安全性。
 
 ## 实施的更改
 
 ### 1. 配置系统更新
 
 #### 文件：`config/config.go`
-- 添加了 `PPIOFusion` 和 `NovitaFusion` 配置结构体
+- 添加了 `betaFusion` 和 `AlphaFusion` 配置结构体
 - 在 `LoadConfig` 函数中添加了对新配置项的 AES 解密处理
 - 支持加密存储敏感的 API Token
 
 #### 文件：`config/config.yaml.template`
-- 添加了 `ppio_fusion` 和 `novita_fusion` 配置模板
+- 添加了 `beta_fusion` 和 `alpha_fusion` 配置模板
 - 提供了配置示例和注释
 
 #### 文件：`config/config.dev.yaml`
@@ -46,15 +46,15 @@
 #### 文件：`frontend/vite.config.js` 和 `vite.config.js`
 - 修改了代理配置，将请求转发到统一的后端代理接口 `/api/v1/fusion`
 - 更新了目标地址从 `localhost:8111` 到 `localhost:8080`
-- 添加了 `X-Fusion-Provider` header 设置，用于区分 PPIO 和 Novita 服务
+- 添加了 `X-Fusion-Provider` header 设置，用于区分 beta 和 alpha 服务
 - 修改了路径重写规则：
-  - `/fusion-ppio/*` → `/api/v1/fusion/*` (设置 `X-Fusion-Provider: ppio`)
-  - `/fusion-novita/*` → `/api/v1/fusion/*` (设置 `X-Fusion-Provider: novita`)
+  - `/fusion-beta/*` → `/api/v1/fusion/*` (设置 `X-Fusion-Provider: beta`)
+  - `/fusion-alpha/*` → `/api/v1/fusion/*` (设置 `X-Fusion-Provider: alpha`)
 - 改进了日志输出以便调试和监控
 
 #### 文件：`frontend/nginx.conf.template`
 - 添加了生产环境的 fusion 代理配置
-- 将 `/fusion-ppio/` 和 `/fusion-novita/` 请求转发到后端代理
+- 将 `/fusion-beta/` 和 `/fusion-alpha/` 请求转发到后端代理
 - 移除了直接的外部服务代理配置
 - 移除了前端的认证头设置，改为通过后端处理认证
 
@@ -95,41 +95,41 @@
 ## 请求流程
 
 ```
-前端请求: /fusion-ppio/* 或 /fusion-novita/*
+前端请求: /fusion-beta/* 或 /fusion-alpha/*
     ↓ (Nginx 代理转发到后端，设置 X-Fusion-Provider header)
 后端路由: /api/v1/fusion/*
     ↓ (认证中间件验证)
 统一代理处理器: 检查 X-Fusion-Provider + 去掉 /api/v1 前缀 + URL 重写 + 添加认证头
     ↓ (转发到外部 API)
-外部服务: /admin/v1/* (PPIO 或 Novita API)
+外部服务: /admin/v1/* (beta 或 alpha API)
     ↓ (响应返回)
 审计日志: 如果是写操作(PUT/POST)且涉及 accounts/models/providers 资源，记录审计日志
 ```
 
 ### 具体示例
 
-1. **PPIO 请求流程**：
+1. **beta 请求流程**：
    ```
-   前端: GET /fusion-ppio/models
-   ↓ (Nginx 代理，设置 X-Fusion-Provider: ppio)
+   前端: GET /fusion-beta/models
+   ↓ (Nginx 代理，设置 X-Fusion-Provider: beta)
    后端: GET /api/v1/fusion/models
    ↓ (认证 + 统一代理处理器)
    外部: GET https://api.ppinfra.com/admin/v1/models
    ```
 
-2. **Novita 请求流程**：
+2. **alpha 请求流程**：
    ```
-   前端: POST /fusion-novita/deployments
-   ↓ (Nginx 代理，设置 X-Fusion-Provider: novita)
+   前端: POST /fusion-alpha/deployments
+   ↓ (Nginx 代理，设置 X-Fusion-Provider: alpha)
    后端: POST /api/v1/fusion/deployments
    ↓ (认证 + 统一代理处理器)
-   外部: POST https://api.novita.ai/admin/v1/deployments
+   外部: POST https://api.alpha.ai/admin/v1/deployments
    ```
 
 ## 部署步骤
 
 1. **配置更新**：
-   - 在配置文件中添加 `ppio_fusion` 和 `novita_fusion` 配置
+   - 在配置文件中添加 `beta_fusion` 和 `alpha_fusion` 配置
    - 使用正确的 URL 和加密的 Token
 
 2. **代码部署**：
@@ -215,7 +215,7 @@ providersPattern := regexp.MustCompile(`^/models/[^/]+/providers(/.*)?$`)
 - **操作类型**：根据 HTTP 方法和资源类型生成（如"Fusion-创建账户管理"、"Fusion-更新模型管理"）
 - **请求信息**：完整的请求 URL、方法、请求体内容
 - **响应状态**：HTTP 状态码和操作结果（成功/失败）
-- **目标资源**：格式为 `{provider}:{resource}`（如 "ppio:accounts"、"novita:models"）
+- **目标资源**：格式为 `{provider}:{resource}`（如 "beta:accounts"、"alpha:models"）
 - **操作详情**：资源类型的描述信息
 
 ### 审计日志示例
@@ -228,7 +228,7 @@ providersPattern := regexp.MustCompile(`^/models/[^/]+/providers(/.*)?$`)
 方法: POST
 状态码: 201
 结果: 操作成功
-目标: ppio:accounts
+目标: beta:accounts
 详情: 账户管理
 请求体: {"name":"test-account","type":"standard"}
 ```
@@ -241,7 +241,7 @@ providersPattern := regexp.MustCompile(`^/models/[^/]+/providers(/.*)?$`)
 方法: PUT
 状态码: 200
 结果: 操作成功
-目标: novita:models
+目标: alpha:models
 详情: 模型管理
 请求体: {"name":"updated-model","version":"2.0"}
 ```
@@ -254,7 +254,7 @@ providersPattern := regexp.MustCompile(`^/models/[^/]+/providers(/.*)?$`)
 方法: POST
 状态码: 201
 结果: 操作成功
-目标: ppio:providers
+目标: beta:providers
 详情: 模型提供商管理
 请求体: {"provider":"openai","config":{"api_key":"***"}}
 ```

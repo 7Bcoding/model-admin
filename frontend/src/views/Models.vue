@@ -531,8 +531,8 @@ export default {
         serverless: model.endpoints ? 
           `https://grafana.aicloud.pplabs.tech/d/KOpAVRCIz1/prod-overview?orgId=1${
             model.endpoints
-              .filter(endpoint => endpoint.url.includes('.runsync.novita.dev'))
-              .map(endpoint => `&var-endpoint=${endpoint.url.replace('https://', '').replace('http://', '').split('.runsync.novita.dev')[0]}`)
+              .filter(endpoint => endpoint.url.includes('.runsync.alpha.dev'))
+              .map(endpoint => `&var-endpoint=${endpoint.url.replace('https://', '').replace('http://', '').split('.runsync.alpha.dev')[0]}`)
               .join('')
           }&from=now-24h&to=now&refresh=5s` : null
       }
@@ -562,8 +562,8 @@ export default {
 
     // 从 URL 中提取 serverless endpoint 名称
     const extractServerlessEndpoint = (url) => {
-      if (!url.includes('runsync.novita.dev')) return null
-      const match = url.match(/https:\/\/(.*?)\.runsync\.novita\.dev/)
+      if (!url.includes('runsync.alpha.dev')) return null
+      const match = url.match(/https:\/\/(.*?)\.runsync\.alpha\.dev/)
       return match ? match[1] : null
     }
 
@@ -655,7 +655,7 @@ export default {
 
     // 添加提取 endpoint 名称的方法
     const extractEndpointName = (url) => {
-      const match = url.match(/https:\/\/(.*?)\.runsync\.novita\.dev/)
+      const match = url.match(/https:\/\/(.*?)\.runsync\.alpha\.dev/)
       return match ? match[1] : url
     }
 
@@ -723,7 +723,7 @@ export default {
     const getEndpointTypeTag = (url) => {
       if (!url) return ''
       // serverless2.0
-      if (/^https:\/\/[\w-]+\.us-01\.sls2\.novita\.ai/.test(url)) {
+      if (/^https:\/\/[\w-]+\.us-01\.sls2\.alpha\.ai/.test(url)) {
         return { tag: '2.0', color: '#2563eb', tip: 'Serverless 2.0' }
       }
       // 融合服
