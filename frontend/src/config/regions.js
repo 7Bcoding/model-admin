@@ -46,7 +46,7 @@ export const defaultEnv = {
   VLLM_ENGINE_ITERATION_TIMEOUT_S: '240',
   LOG_UPLOAD_ENDPOINT: 'aws',
   LOG_UPLOAD_LOCATION: '/var/log/supervisor/',
-  HF_TOKEN: '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'
+  HF_TOKEN: 'xxxxx'
 }
 
 // 获取GPU Provider名称
@@ -58,7 +58,7 @@ export const getGpuProvider = (region, gpuType) => {
     '4': 'nyc-01'
   }
   const gpu = gpuModels.find(g => g.value === gpuType)
-  return gpu ? `novita-serverless-${regionMap[region]}-${gpu.provider}` : undefined
+  return gpu ? `new-serverless-${regionMap[region]}-${gpu.provider}` : undefined
 }
 
 // 获取HF_HOME值
@@ -91,7 +91,7 @@ export const templates = {
       ...defaultEnv,
       HF_HOME: '/data',
       MODEL_ID: 'meta-llama/llama-3.1-70b-instruct',
-      GPU_PROVIDER: 'novita-serverless-us-01-h20'
+      GPU_PROVIDER: 'new-serverless-h20'
     },
     cluster: '1'
   },
@@ -118,7 +118,7 @@ export const templates = {
       ...defaultEnv,
       HF_HOME: '/data',
       MODEL_ID: 'meta-llama/llama-3.1-70b-instruct',
-      GPU_PROVIDER: 'novita-serverless-ca-01-h20'
+      GPU_PROVIDER: 'new-serverless-h20'
     },
     cluster: '2'
   },
@@ -145,7 +145,7 @@ export const templates = {
       ...defaultEnv,
       HF_HOME: '/hf_data',
       MODEL_ID: 'meta-llama/llama-3.1-70b-instruct',
-      GPU_PROVIDER: 'novita-serverless-ca-02-h20'
+      GPU_PROVIDER: 'new-serverless-ca-02-h20'
     },
     cluster: '3'
   }
@@ -154,6 +154,6 @@ export const templates = {
 // 固定的镜像密钥配置
 export const imageSecrets = {
   registry: 'ghcr.io',
-  username: 'AllenShen',
-  password: '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'
+  username: 'xxx',
+  password: 'xxx'
 } 

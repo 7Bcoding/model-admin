@@ -1111,11 +1111,11 @@ const modelWarmupVisible = ref(false)
 const modelToWarmup = ref('')
 const warmingUp = ref(false)
 const deletingModel = ref('')
-const hfToken = ref('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')
+const hfToken = ref('xxxx')
 const selectedNodes = ref([])
 const batchModelWarmupVisible = ref(false)
 const modelsToWarmup = ref([])
-const defaultHfToken = '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'
+const defaultHfToken = 'xxx'
 const batchLabelDialogVisible = ref(false)
 const batchLabels = ref([])
 const settingLabels = ref(false)
@@ -1659,7 +1659,7 @@ const showModelWarmupDialog = (node) => {
   currentNode.value = node
   modelWarmupVisible.value = true
   modelToWarmup.value = ''
-  hfToken.value = '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' // Reset to default value
+  hfToken.value = 'xxx' // Reset to default value
 }
 
 // 处理模型删除
