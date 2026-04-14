@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"llm-ops/config"
 	"llm-ops/db"
@@ -10,24 +11,33 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
 	"github.com/gorilla/mux"
-	"github.com/gorilla/sessions"
 )
 
 var (
 	userService    *services.UserService
 	trackerService *services.TrackerService
 	auditService   *services.AuditService
-	store          = sessions.NewCookieStore([]byte("your-secret-key"))
 )
 
 func getConfigPath() string {
-	// 优先使用环境变量指定的配置文件
 	if configFile := os.Getenv("CONFIG_FILE"); configFile != "" {
 		return configFile
 	}
-	// 默认使用 /app/config/config.yaml
+	candidates := []string{
+		"config/config.yaml",
+		"./config/config.yaml",
+		"/app/config/config.yaml",
+	}
+	for _, p := range candidates {
+		if _, err := os.Stat(p); err == nil {
+			return p
+		}
+	}
 	return "/app/config/config.yaml"
 }
 
@@ -70,9 +80,9 @@ func main() {
 	// 应用 CORS 中间件
 	r.Use(middleware.CORS)
 
-	// add stop channel
 	stopCh := make(chan struct{})
-	defer close(stopCh)
+	ctx, stopSignals := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stopSignals()
 
 	// 初始化 K8s 服务
 	k8sService, err := services.NewKubernetesService(config.Config.Kubernetes.ConfigPath, stopCh)
@@ -89,10 +99,9 @@ func main() {
 
 	log.Printf("Kubernetes service v2 initialized")
 
-	// 初始化模型服务
-	AlphaModelService := services.NewModelService()
-	BetaModelService := services.NewBetaModelService()
-	handlers.InitModelService(AlphaModelService, BetaModelService)
+	alphaModelService := services.NewModelService()
+	betaModelService := services.NewBetaModelService()
+	handlers.InitModelService(alphaModelService, betaModelService)
 
 	// API 路由
 	api := r.PathPrefix("/api/v1").Subrouter()
@@ -174,8 +183,6 @@ func main() {
 	// 添加 metrics 代理路由
 	api.HandleFunc("/metrics", middleware.AuthRequired(handlers.GetEndpointMetrics)).Methods("GET", "OPTIONS")
 
-	handlers.InitTrackerService(trackerService)
-
 	// 添加 tracker 相关路由
 	api.HandleFunc("/nodes/search", middleware.AuthRequired(handlers.SearchNodes)).Methods("POST", "OPTIONS")
 	api.HandleFunc("/nodes/models/warmup", middleware.AuthRequired(handlers.WarmupModels)).Methods("POST", "OPTIONS")
@@ -192,15 +199,43 @@ func main() {
 	// Fusion 统一代理路由 - 需要认证
 	api.PathPrefix("/fusion/").HandlerFunc(middleware.AuthRequired(handlers.FusionProxy))
 
-	// 获取端口配置
 	port := os.Getenv("PORT")
+	if port == "" && config.Config.Server.Port != "" {
+		port = config.Config.Server.Port
+	}
 	if port == "" {
 		port = "8080"
 	}
 
-	// 启动服务器
-	log.Printf("Server starting on port %s", port)
-	if err := http.ListenAndServe(fmt.Sprintf(":%s", port), r); err != nil {
-		log.Fatalf("Failed to start server: %v", err)
+	addr := fmt.Sprintf(":%s", port)
+	srv := &http.Server{
+		Addr:              addr,
+		Handler:           r,
+		ReadHeaderTimeout: 10 * time.Second,
+		ReadTimeout:       60 * time.Second,
+		WriteTimeout:      0,
+		IdleTimeout:       120 * time.Second,
+	}
+
+	errCh := make(chan error, 1)
+	go func() { errCh <- srv.ListenAndServe() }()
+
+	log.Printf("Server starting on %s", addr)
+
+	select {
+	case err := <-errCh:
+		if err != nil && err != http.ErrServerClosed {
+			log.Fatalf("Failed to run server: %v", err)
+		}
+	case <-ctx.Done():
+		close(stopCh)
+		shutdownCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+		if err := srv.Shutdown(shutdownCtx); err != nil {
+			log.Printf("HTTP server shutdown: %v", err)
+		}
+		if err := <-errCh; err != nil && err != http.ErrServerClosed {
+			log.Printf("Server exit: %v", err)
+		}
 	}
 }

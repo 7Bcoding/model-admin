@@ -81,12 +81,12 @@ type Configuration struct {
 		ConfigPathV2 string `yaml:"config_path_v2"`
 	} `yaml:"kubernetes"`
 
-	alpha struct {
+	Alpha struct {
 		ApiURL string `yaml:"api_url"`
 		ApiKey string `yaml:"api_key"`
 	} `yaml:"alpha"`
 
-	beta struct {
+	Beta struct {
 		ApiURL string `yaml:"api_url"`
 		ApiKey string `yaml:"api_key"`
 	} `yaml:"beta"`
@@ -94,7 +94,7 @@ type Configuration struct {
 	Tracker TrackerConfig `yaml:"tracker"`
 
 	// Fusion 代理配置
-	betaFusion struct {
+	BetaFusion struct {
 		URL   string `yaml:"url"`
 		Token string `yaml:"token"`
 	} `yaml:"beta_fusion"`
@@ -179,11 +179,7 @@ func init() {
 		})
 		client, err := conn.Client()
 		if err != nil {
-			log.Println(fmt.Sprintf("failed to create client: %v, url: %s, token: %s", err, cluster.GrpcURL, cluster.Token))
-			return
-		}
-		if err != nil {
-			log.Println(fmt.Sprintf("failed to create client: %v, url: %s, token: %s", err, cluster.GrpcURL, cluster.Token))
+			log.Printf("nexus client init failed for cluster %s (%s): %v", cluster.ID, cluster.GrpcURL, err)
 			continue
 		}
 		cluster.Client = client
@@ -217,7 +213,7 @@ func LoadConfig(configPath string) error {
 		return err
 	}
 	Config.MySQL.Password = string(tpass)
-	log.Println(fmt.Sprintf("mysqlPassword: %s", Config.MySQL.Password))
+	log.Println("mysql password decrypted from config")
 
 	trackerToken := Config.Tracker.Token
 	bytesPass, err = base64.StdEncoding.DecodeString(trackerToken)
@@ -229,7 +225,7 @@ func LoadConfig(configPath string) error {
 		return err
 	}
 	Config.Tracker.Token = string(tpass)
-	log.Println(fmt.Sprintf("trackerToken: %s", Config.Tracker.Token))
+	log.Println("tracker token decrypted from config")
 
 	alphaApiKey := Config.Alpha.ApiKey
 	bytesPass, err = base64.StdEncoding.DecodeString(alphaApiKey)
@@ -241,7 +237,7 @@ func LoadConfig(configPath string) error {
 		return err
 	}
 	Config.Alpha.ApiKey = string(tpass)
-	log.Println(fmt.Sprintf("alphaApiKey: %s", Config.Alpha.ApiKey))
+	log.Println("alpha API key decrypted from config")
 
 	betaApiKey := Config.Beta.ApiKey
 	bytesPass, err = base64.StdEncoding.DecodeString(betaApiKey)
@@ -253,11 +249,11 @@ func LoadConfig(configPath string) error {
 		return err
 	}
 	Config.Beta.ApiKey = string(tpass)
-	log.Println(fmt.Sprintf("betaApiKey: %s", Config.Beta.ApiKey))
+	log.Println("beta API key decrypted from config")
 
 	// 解密 beta Fusion Token
-	if Config.betaFusion.Token != "" {
-		betaFusionToken := Config.betaFusion.Token
+	if Config.BetaFusion.Token != "" {
+		betaFusionToken := Config.BetaFusion.Token
 		bytesPass, err = base64.StdEncoding.DecodeString(betaFusionToken)
 		if err != nil {
 			return err
@@ -266,8 +262,8 @@ func LoadConfig(configPath string) error {
 		if err != nil {
 			return err
 		}
-		Config.betaFusion.Token = string(tpass)
-		log.Println(fmt.Sprintf("betaFusionToken: %s", Config.betaFusion.Token))
+		Config.BetaFusion.Token = string(tpass)
+		log.Println("beta Fusion token decrypted from config")
 	}
 
 	// 解密 alpha Fusion Token
@@ -282,7 +278,7 @@ func LoadConfig(configPath string) error {
 			return err
 		}
 		Config.AlphaFusion.Token = string(tpass)
-		log.Println(fmt.Sprintf("AlphaFusionToken: %s", Config.AlphaFusion.Token))
+		log.Println("alpha Fusion token decrypted from config")
 	}
 
 	return nil

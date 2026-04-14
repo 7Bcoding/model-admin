@@ -2,10 +2,11 @@ package db
 
 import (
 	"fmt"
-	"llm-ops/models"
 	"log"
+	"time"
 
 	"llm-ops/config"
+	"llm-ops/models"
 
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -28,6 +29,14 @@ func InitDB() error {
 	if err != nil {
 		return err
 	}
+
+	sqlDB, err := DB.DB()
+	if err != nil {
+		return fmt.Errorf("get sql db: %w", err)
+	}
+	sqlDB.SetMaxIdleConns(10)
+	sqlDB.SetMaxOpenConns(100)
+	sqlDB.SetConnMaxLifetime(time.Hour)
 
 	// 自动迁移数据库结构
 	// err = DB.AutoMigrate(&models.User{})

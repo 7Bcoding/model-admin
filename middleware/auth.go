@@ -6,11 +6,7 @@ import (
 	"log"
 	"net/http"
 	"strings"
-
-	"github.com/gorilla/sessions"
 )
-
-var store = sessions.NewCookieStore([]byte("your-secret-key"))
 
 func AuthRequired(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {

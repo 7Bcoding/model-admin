@@ -10,10 +10,7 @@ import (
 	"llm-ops/utils"
 
 	"github.com/casdoor/casdoor-go-sdk/casdoorsdk"
-	"github.com/gorilla/sessions"
 )
-
-var store = sessions.NewCookieStore([]byte("your-secret-key"))
 
 var cert = `-----BEGIN CERTIFICATE-----
 MIIE2TCCAsGgAwIBAgIDAeJAMA0GCSqGSIb3DQEBCwUAMCYxDjAMBgNVBAoTBWFk

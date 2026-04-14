@@ -97,12 +97,12 @@ func FusionProxy(w http.ResponseWriter, r *http.Request) {
 	// 根据 provider 选择配置
 	switch strings.ToLower(provider) {
 	case "beta":
-		if config.Config.betaFusion.URL == "" {
+		if config.Config.BetaFusion.URL == "" {
 			utils.ErrorResponse(w, http.StatusInternalServerError, "beta Fusion URL not configured")
 			return
 		}
-		targetURL, err = url.Parse(config.Config.betaFusion.URL)
-		token = config.Config.betaFusion.Token
+		targetURL, err = url.Parse(config.Config.BetaFusion.URL)
+		token = config.Config.BetaFusion.Token
 	case "alpha":
 		if config.Config.AlphaFusion.URL == "" {
 			utils.ErrorResponse(w, http.StatusInternalServerError, "alpha Fusion URL not configured")

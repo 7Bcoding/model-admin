@@ -19,15 +19,15 @@ type ModelService struct {
 
 func NewModelService() *ModelService {
 	return &ModelService{
-		apiHost:      config.Config.alpha.ApiURL,
-		apiKey:       config.Config.alpha.ApiKey,
+		apiHost:      config.Config.Alpha.ApiURL,
+		apiKey:       config.Config.Alpha.ApiKey,
 		cacheManager: GetCacheManager(),
 	}
 }
 
 func NewBetaModelService() *ModelService {
 	return &ModelService{
-		apiHost:      config.Config.beta.ApiURL,
+		apiHost:      config.Config.Beta.ApiURL,
 		apiKey:       config.Config.Beta.ApiKey,
 		cacheManager: GetCacheManager(),
 	}
